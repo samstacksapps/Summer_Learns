@@ -1,0 +1,81 @@
+.tutor-lesson { max-width: 1060px; margin: 0 auto; }
+.tutor-lesson .page-intro { margin-bottom: 20px; }
+.tutor-lesson .page-intro h1 { font-size: clamp(30px, 4vw, 46px); }
+.tutor-lesson .lesson-bar { margin-bottom: 12px; }
+.tutor-progress-copy { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; font-size: 14px; color: var(--muted); }
+.tutor-progress-copy strong { color: var(--navy); }
+.tutor-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 22px; align-items: start; }
+.tutor-question { padding: 30px; }
+.tutor-question h2 { margin-top: 12px; font: 600 24px/1.65 var(--font-reading); letter-spacing: -.015em; overflow-wrap: anywhere; }
+.tutor-question .passage { margin-top: 20px; font-size: 20px; }
+.tutor-question .read-row { align-items: center; }
+.tutor-year { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--pill); padding: 7px 13px; background: var(--page); font-size: 12px; font-weight: 700; }
+.tutor-answer-form label { margin: 23px 0 9px; font-family: var(--font-reading); font-size: 18px; }
+.tutor-answer-form input, .tutor-answer-form textarea { font-family: var(--font-reading); font-size: 18px; }
+.tutor-answer-form > .primary { width: 100%; margin-top: 23px; }
+.tutor-question textarea, .tutor-chat textarea { width: 100%; min-height: 106px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--white); line-height: 1.7; resize: vertical; }
+.tutor-question textarea::placeholder, .tutor-chat textarea::placeholder { color: var(--muted); opacity: 1; }
+.tutor-question textarea:focus-visible, .tutor-chat textarea:focus-visible { outline: 3px solid var(--navy); outline-offset: 4px; }
+.tutor-question textarea:disabled, .tutor-chat textarea:disabled { background: var(--page); color: var(--muted); }
+.tutor-explanation-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tutor-explanation-label label { margin-bottom: 10px; }
+.tutor-explanation-label small { font: 500 12px/1.5 var(--font-ui); color: var(--muted); }
+.tutor-answer-form .choices { margin-top: 5px; }
+.tutor-answer-form .choice { text-align: left; }
+.tutor-hint-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.tutor-recording-row { display: flex; flex-direction: column; gap: 10px; align-items: stretch; margin-top: 12px; }
+.tutor-recording-row .mic-button { flex: none; width: 100%; min-height: 56px; padding: 12px 17px; }
+.tutor-recording-row .skip-button { align-self: flex-start; }
+.tutor-recording-row small { font-size: 12px; line-height: 1.6; color: var(--muted); }
+.tutor-chat { padding: 25px; background: rgb(255 255 255 / 78%); }
+.tutor-chat-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 17px; }
+.tutor-chat-heading h2 { display: flex; align-items: center; gap: 9px; font-size: 21px; }
+.tutor-chat-log { display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; scroll-padding-block: 12px; }
+.tutor-chat-bubble { padding: 17px 19px; border-radius: 22px 22px 22px 6px; background: var(--lavender); overflow-wrap: anywhere; }
+.tutor-chat-bubble p { font: 400 18px/1.75 var(--font-reading); white-space: pre-wrap; }
+.tutor-chat-bubble small { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.tutor-chat-bubble.user { margin-left: 24px; border-radius: 22px 22px 6px 22px; background: var(--sky); }
+.tutor-chat-bubble.assistant { margin-right: 10px; }
+.tutor-chat-bubble .speaker { float: right; margin: 10px -5px -3px 10px; background: var(--white); }
+.tutor-chat-end { scroll-margin-bottom: 145px; }
+.tutor-chat-form { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.tutor-chat-form label { margin-bottom: 9px; font-size: 14px; }
+.tutor-chat-form textarea { min-height: 92px; font-family: var(--font-reading); font-size: 18px; }
+.tutor-chat-form .secondary { display: flex; width: 100%; margin-top: 12px; }
+.tutor-status { min-height: 28px; margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+.tutor-error { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
+.tutor-error p { margin: 0; }
+.tutor-error .secondary { background: var(--white); }
+.tutor-voice-note { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; color: var(--muted); font-size: 13px; }
+.tutor-voice-note a { font-weight: 700; }
+.tutor-start { max-width: 700px; }
+.tutor-start .scene-art { width: 210px; height: 160px; }
+.tutor-start .eyebrow { margin-bottom: 9px; }
+.tutor-start .secondary { display: flex; margin: 15px auto 0; }
+.tutor-start .tutor-status { min-height: 0; margin-top: 15px; }
+.tutor-feedback { margin-top: 22px; scroll-margin-bottom: 145px; }
+.tutor-feedback .primary { display: flex; width: 100%; }
+.tutor-feedback > p { margin: 13px 0 0; color: var(--muted); font-size: 13px; }
+.tutor-complete .tutor-chat-bubble { text-align: left; margin: 22px auto; max-width: 530px; }
+.tutor-complete .reward-space { min-height: 56px; }
+.tutor-observations { text-align: left; max-width: 530px; margin: 16px auto 0; }
+.tutor-observations p { margin: 9px 0; font-size: 15px; }
+@media (max-width: 850px) {
+  .tutor-layout { grid-template-columns: 1fr; }
+  .tutor-chat-log { max-height: 390px; }
+  .tutor-chat { padding: 24px; }
+}
+@media (max-width: 650px) {
+  .tutor-question { padding: 23px 21px; }
+  .tutor-question h2 { font-size: 20px; line-height: 1.7; }
+  .tutor-progress-copy { font-size: 12px; }
+  .tutor-layout { gap: 18px; }
+  .tutor-chat { padding: 22px 20px; }
+  .tutor-chat-heading h2 { font-size: 19px; }
+  .tutor-chat-bubble { padding: 16px; }
+  .tutor-chat-bubble.user { margin-left: 16px; }
+  .tutor-chat-bubble.assistant { margin-right: 5px; }
+  .tutor-recording-row { align-items: flex-start; flex-direction: column; }
+  .tutor-recording-row .mic-button { width: 100%; }
+  .tutor-recording-row small { font-size: 12px; }
+}

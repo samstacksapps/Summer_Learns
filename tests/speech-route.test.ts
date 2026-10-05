@@ -57,3 +57,13 @@ test('dynamic speech uses only the owned current item, rejecting stale IDs and i
  assert.equal(current.status,200);assert.equal(current.headers.get('cache-control'),'no-store');assert.equal(current.headers.get('content-type'),'audio/mpeg');assert.equal(calls.tts,1);assert.equal(calls.context,2);
  const unknown=await post({line:'constructor'});assert.equal(unknown.status,400);assert.equal(calls.tts,1);
 });
+test('device speech gets only the current owned instruction and makes no paid speech request',async()=>{
+ const {post,calls}=harness();
+ const stale=await post({line:'item',format:'text',sessionId:SID,itemId:'other-item'});
+ assert.equal(stale.status,400);
+ const response=await post({line:'item',format:'text',sessionId:SID,itemId:'current-spelling-item',text:'Injected answer'});
+ assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+ assert.deepEqual(await response.json(),{text:'Private authored spelling instruction.'});assert.equal(calls.tts,0);
+ const anonymous=await harness(false).post({line:'item',format:'text',sessionId:SID,itemId:'current-spelling-item'});
+ assert.equal(anonymous.status,401);
+});

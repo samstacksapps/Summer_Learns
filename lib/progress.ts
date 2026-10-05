@@ -20,7 +20,7 @@ export function nextQuestion(run:RunRow,session:SessionRow,h:Awaited<ReturnType<
  const limit=session.part==='reading'?2:12;
  if(partAttempts.length>=limit||Date.now()-Date.parse(session.started_at)>=12*60*1000)return undefined;
  const pool=items.filter(i=>partMatches(i,session.part));
- if(run.kind==='baseline')return chooseNextItem(pool,attempts,session.part==='maths'?'maths':'english');
+ if(run.kind==='baseline')return chooseNextItem(pool.filter(i=>i.yearLevel>=1&&i.yearLevel<=2),attempts,session.part==='maths'?'maths':'english',undefined,'baseline',2);
  const baseline=h.runs.find(r=>r.kind==='baseline'&&r.status==='completed');
  const baselineAttempts=baseline?attemptRows(h.attempts.filter(a=>a.assessment_id===baseline.id),'baseline'):[];
  return chooseFollowupItem(pool,baselineAttempts,attempts,session.part==='maths'?'maths':'english');
@@ -47,5 +47,5 @@ export function questionPayload(run:RunRow,session:SessionRow,item:Item,h:Awaite
  const sessions=new Set(h.sessions.filter(s=>s.assessment_id===run.id&&s.part===session.part).map(s=>s.id));
  const total=session.part==='reading'?2:12;
  const answered=Math.min(total,h.attempts.filter(a=>sessions.has(String(a.session_id))).length);
- return {assessmentId:run.id,sessionId:session.id,part:session.part,kind:run.kind,item:publicItem(item),sessionEnded:false,sessionDeadline:new Date(Date.parse(session.started_at)+12*60*1000).toISOString(),progress:{answered,total}};
+ return {assessmentId:run.id,sessionId:session.id,part:session.part,kind:run.kind,item:publicItem(item,session.id),sessionEnded:false,sessionDeadline:new Date(Date.parse(session.started_at)+12*60*1000).toISOString(),progress:{answered,total}};
 }

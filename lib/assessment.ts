@@ -107,7 +107,7 @@ export function isIndependent(attempt: Attempt): boolean {
 }
 
 /**
- * Start at Pre-primary. Two independent successes allow a gentle step up;
+ * Start at the supplied initial level (Pre-primary by default). Two independent successes allow a gentle step up;
  * two independent errors step down. One error/fast response gets a fresh
  * recheck, not a confirmed gap. Exhausted easier forms end the part rather
  * than forcing increasingly difficult questions. Caller enforces time caps.
@@ -119,6 +119,7 @@ export function chooseNextItem(
   subject: Subject,
   kind?: ItemKind,
   form: AssessmentForm = 'baseline',
+  initialYearLevel: YearLevel = 0,
 ): Item | undefined {
   const pool = items.filter((item) => item.subject === subject && (!kind || item.kind === kind) && item.form === form);
   const byId = new Map(pool.map((item) => [item.id, item]));
@@ -131,11 +132,14 @@ export function chooseNextItem(
   // child to a higher grade or establish competence without human review.
   if (pool.every((item) => item.kind === 'reading')) {
     const observedLevels = new Set(relevant.map((attempt) => byId.get(attempt.itemId)!.yearLevel));
-    const nextLevel = !observedLevels.has(0) ? 0 : !observedLevels.has(1) ? 1 : undefined;
+    const readingLevels = [...new Set(pool.map((item) => item.yearLevel))].sort((a, b) => a - b).slice(0, 2);
+    const nextLevel = readingLevels.find((level) => !observedLevels.has(level));
     return remaining.filter((item) => item.yearLevel === nextLevel).sort((a, b) => a.id.localeCompare(b.id))[0];
   }
 
-  let target = 0;
+  const lowestLevel = Math.min(...pool.map((item) => item.yearLevel));
+  const highestLevel = Math.max(...pool.map((item) => item.yearLevel));
+  let target = initialYearLevel;
   let successes = 0;
   let errors = 0;
   let steppedDown = false;
@@ -147,14 +151,14 @@ export function chooseNextItem(
       errors = 0;
       steppedDown = false;
       if (successes >= 2) {
-        target = Math.min(4, level + 1);
+        target = Math.min(highestLevel, level + 1) as YearLevel;
         successes = 0;
       }
     } else {
       successes = 0;
       errors += 1;
       if (errors >= 2) {
-        target = Math.max(0, level - 1);
+        target = Math.max(lowestLevel, level - 1) as YearLevel;
         errors = 0;
         steppedDown = true;
       }

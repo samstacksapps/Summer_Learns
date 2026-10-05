@@ -4,17 +4,19 @@ import {failure,json,sameOrigin,uuid} from '@/lib/http';
 import {history,schedule,attemptRows} from '@/lib/progress';
 import {summariseSkills,comparison} from '@/lib/assessment';
 import {skills,items,curriculumVerified} from '@/lib/catalogue';
+import {learningProgress} from '@/lib/learning-progress';
 export async function GET(request:Request){try{
  const {db,user}=await requireParent();const recordingId=new URL(request.url).searchParams.get('recording');
  if(recordingId){if(!uuid(recordingId))return json({error:'Recording not found.'},404);const {data,error}=await db.from('reading_recordings').select('audio_base64,mime_type').eq('id',recordingId).eq('owner_id',user.id).gt('expires_at',new Date().toISOString()).single();if(error||!data)return json({error:'This recording has expired or is not available.'},404);return new Response(Buffer.from(data.audio_base64,'base64'),{headers:{'Content-Type':data.mime_type,'Cache-Control':'no-store'}});}
  const h=await history(db,user.id);
+ const learning=await learningProgress(db,user.id);
  const [r,v,reviews]=await Promise.all([db.from('reading_recordings').select('id,item_id,assessment_id,accuracy_estimate,parent_accuracy,created_at,expires_at').eq('owner_id',user.id).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}),db.from('voice_usage').select('amount_cents').eq('owner_id',user.id).gte('created_at',new Date(Date.UTC(new Date().getUTCFullYear(),new Date().getUTCMonth(),1)).toISOString()),db.from('reading_reviews').select('*').eq('owner_id',user.id)]);
  if(r.error||v.error||reviews.error)throw new Error('DATABASE_NOT_READY');
  const baseline=h.runs.find(run=>run.kind==='baseline'&&run.status==='completed')??h.runs.find(run=>run.kind==='baseline');
  const later=h.runs.find(run=>run.kind==='followup'&&run.status==='completed')??h.runs.find(run=>run.kind==='followup');
  const before=baseline?attemptRows(h.attempts.filter(a=>a.assessment_id===baseline.id),'baseline'):[];
  const after=later?attemptRows(h.attempts.filter(a=>a.assessment_id===later.id),'followup'):[];
- return json({curriculumVerified,baseline,later,schedule:schedule(h),skills:skills.map(s=>({id:s.id,subject:s.subject,description:s.description,yearLevel:s.yearLevel,strand:s.strand})),baselineSummary:summariseSkills(skills,before),laterSummary:summariseSkills(skills,after),comparison:comparison(skills,before,after,items),sessions:h.sessions,recordings:r.data.map(r=>({...r,passage:items.find(i=>i.id===r.item_id)?.passage,description:skills.find(s=>s.id===items.find(i=>i.id===r.item_id)?.skillId)?.description})),reviews:reviews.data.map(r=>({...r,description:skills.find(s=>s.id===items.find(i=>i.id===r.item_id)?.skillId)?.description||'Reading observation'})),estimatedSpendCents:v.data.reduce((sum,row)=>sum+row.amount_cents,0),budgetCents:1500,guessCount:before.concat(after).filter(a=>a.likelyGuess).length});
+ return json({curriculumVerified,baseline,later,schedule:schedule(h),skills:skills.map(s=>({id:s.id,subject:s.subject,description:s.description,yearLevel:s.yearLevel,strand:s.strand})),baselineSummary:summariseSkills(skills,before),laterSummary:summariseSkills(skills,after),comparison:comparison(skills,before,after,items),sessions:h.sessions,recordings:r.data.map(r=>({...r,passage:items.find(i=>i.id===r.item_id)?.passage,description:skills.find(s=>s.id===items.find(i=>i.id===r.item_id)?.skillId)?.description})),reviews:reviews.data.map(r=>({...r,description:skills.find(s=>s.id===items.find(i=>i.id===r.item_id)?.skillId)?.description||'Reading observation'})),estimatedSpendCents:v.data.reduce((sum,row)=>sum+row.amount_cents,0),budgetCents:1500,guessCount:before.concat(after).filter(a=>a.likelyGuess).length,learning});
 }catch(error){return failure(error);}}
 export async function POST(request:Request){try{
  sameOrigin(request);const body=await request.json();

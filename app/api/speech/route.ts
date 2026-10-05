@@ -13,6 +13,9 @@ export async function POST(request:Request){try{
   if(item&&item.id===body.itemId)text=item.spokenPrompt;
  }
  if(!text)return json({error:'Choose the current instruction’s speaker button.'},400);
+ // Device speech uses the same owned, current instruction as generated audio.
+ // Spelling words stay out of the visible question and are never public assets.
+ if(body.format==='text')return json({text});
  const audio=await speech(db,text);
  return new Response(audio,{headers:{'Content-Type':'audio/mpeg','Cache-Control':'no-store'}});
 }catch(error){return failure(error);}}

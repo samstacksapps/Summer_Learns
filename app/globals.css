@@ -309,3 +309,20 @@ input::placeholder { color: var(--muted); opacity: 1; } input:disabled { backgro
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
   button:active:not(:disabled) { transform: none; }
 }
+
+.daily-learning { padding: 30px; background: var(--lavender); }
+.daily-learning h2 { margin: 8px 0 12px; }
+.daily-learning > p { max-width: 660px; }
+.daily-subjects { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
+.lesson-list > .daily-subjects { padding: 28px; margin-bottom: 24px; }
+.daily-subjects > div { flex: 1 1 300px; }
+.daily-subjects > div > p { margin-top: 8px; }
+.daily-learning .saved-note { margin-top: 18px; }
+.recording-row audio { display: block; width: min(100%, 420px); margin: 16px 0; }
+@media (max-width: 650px) { .daily-learning { padding: 24px; } .daily-subjects > button { width: 100%; } }
+
+.tutor-setup-panel { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.tutor-setup-panel ol { padding-left: 24px; }
+.tutor-setup-panel details { margin-top: 18px; }
+.tutor-setup-panel summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
+.tutor-setup-panel textarea { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 18px; font-size: 13px; background: var(--white); }

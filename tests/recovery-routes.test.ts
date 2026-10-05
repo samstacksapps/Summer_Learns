@@ -12,9 +12,10 @@ const OWNER='aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 const RUN='bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb';
 const SID='cccccccc-cccc-4ccc-cccc-cccccccccccc';
 const item=(id:string,kind:Item['kind']='number',yearLevel:Item['yearLevel']=0):Item=>({id,skillId:kind==='reading'?'reading':`maths-${id}`,subject:kind==='reading'?'english':'maths',kind,yearLevel,prompt:'Fixture question',spokenPrompt:'Fixture instruction',acceptedAnswers:['2'],form:'baseline',difficulty:yearLevel,...(kind==='reading'?{passage:'A fixture passage.'}:{})});
-const maths=Array.from({length:12},(_,i)=>item(`maths-${String(i).padStart(2,'0')}`));
-const reading=[item('reading-pp','reading'),item('reading-year1','reading',1)];
-const items=[...maths,...reading];
+const maths=Array.from({length:12},(_,i)=>item(`maths-${String(i).padStart(2,'0')}`,'number',2));
+const reading=[item('reading-year1','reading',1),item('reading-year2','reading',2)];
+const oldMaths=item('old-maths-pp'),oldReading=item('old-reading-pp','reading');
+const items=[oldMaths,oldReading,...maths,...reading];
 const skills:Skill[]=items.map(question=>({id:question.skillId,subject:question.subject,strand:'Fixture',yearLevel:question.yearLevel,description:'Fixture skill',prerequisites:[],exampleItems:[question],curriculumSource:'Fixture',curriculumVerified:true}));
 
 class MockDatabase {
@@ -97,15 +98,15 @@ function harness(db:MockDatabase){
   const module=load(`app/api/${route}/route.ts`);return (module.POST as (request:Request)=>Promise<Response>)(request);
  };
 }
-const answer=()=>new Request('https://example.test/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:SID,itemId:maths[0].id,answer:'2',responseMs:4000})});
-function clip(){const form=new FormData();form.set('sessionId',SID);form.set('itemId',reading[0].id);form.set('durationMs','8000');form.set('audio',new File([new Uint8Array(256)],'fixture.m4a',{type:'audio/mp4'}));return new Request('https://example.test/api/reading',{method:'POST',body:form});}
+const answer=(question=maths[0])=>new Request('https://example.test/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:SID,itemId:question.id,answer:'2',responseMs:4000})});
+function clip(question=reading[0]){const form=new FormData();form.set('sessionId',SID);form.set('itemId',question.id);form.set('durationMs','8000');form.set('audio',new File([new Uint8Array(256)],'fixture.m4a',{type:'audio/mp4'}));return new Request('https://example.test/api/reading',{method:'POST',body:form});}
 const assessment=(action='start')=>new Request('https://example.test/api/assessment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,sessionId:SID})});
 
 test('persisted answer and reading retries use actual recovery code without another save/provider charge',async()=>{
- const answers=new MockDatabase();answers.save(maths[0].id);const response=await harness(answers)('answer',answer());
+ const answers=new MockDatabase();answers.save(oldMaths.id);const response=await harness(answers)('answer',answer(oldMaths));
  assert.equal(response.status,200);assert.equal((await response.json()).recovered,true);assert.equal(answers.counters.attemptInserts,0);
- const read=new MockDatabase('reading');read.save(reading[0].id);read.rows.reading_recordings.push({id:'recording',owner_id:OWNER,session_id:SID,item_id:reading[0].id});
- const readingResponse=await harness(read)('reading',clip());assert.equal(readingResponse.status,200);assert.equal((await readingResponse.json()).recordingSaved,true);
+ const read=new MockDatabase('reading');read.save(oldReading.id);read.rows.reading_recordings.push({id:'recording',owner_id:OWNER,session_id:SID,item_id:oldReading.id});
+ const readingResponse=await harness(read)('reading',clip(oldReading));assert.equal(readingResponse.status,200);assert.equal((await readingResponse.json()).recordingSaved,true);
  assert.equal(read.counters.readingSaves,0);assert.equal(read.counters.reservations,0);assert.equal(read.counters.transcriptions,0);
 });
 test('a save+completion between preflight and sessionContext recovers instead of SESSION_NOT_ACTIVE500',async()=>{

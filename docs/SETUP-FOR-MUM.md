@@ -1,58 +1,36 @@
 # Using Summer’s Learning Lab
 
-Phase 1 contains Summer’s starting **warm-up challenge** and a matched follow-up with fresh questions. The warm-up takes up to three visits: maths, spelling and understanding, then reading aloud. Each lasts at most twelve minutes and can stop earlier.
+Open [summerlearns.vercel.app](https://summerlearns.vercel.app/) in iPhone Safari or laptop Chrome. Use your existing parent account and six-digit PIN; Summer needs no separate account.
 
-Daily sessions and the personalised AI tutor are not implemented yet; they belong to Phase 2. The four-week clock starts with her first completed normal learning session, not an app visit or the baseline.
+## Enable the AI lessons
 
-## What is working
+1. Tap the lock and unlock the parent area.
+2. Under **Daily lessons · Years 1–2**, tap **Copy database update**.
+3. Open your existing Supabase project → **SQL Editor → New query**.
+4. Paste the update, tap **Run**, then refresh Summer’s app.
 
-The live production homepage opens and the private parent route requires sign-in. You confirmed parent sign-in, the PIN and audible voice on your phone. The long delay before common messages has been addressed with ready-to-play audio using the same Australian Marin settings. All47 automated checks, TypeScript and the updated production build pass. The revised phone timing still needs your check.
+This adds the lesson records. It keeps the account, starting-point results and recordings. Do not delete tables or create another project. If the copy button is unavailable, use `supabase/migrations/20261006_conversational_tutor.sql` in GitHub. If Run shows an error, share its text without keys or passwords.
 
-All eight Supabase tables exist and deny anonymous access; public sign-ups are disabled. The cleanup job is registered. Real iPhone microphone capture, cross-device progress and successful deletion of expired recordings remain unverified.
+## Choose the Australian voice
 
-## Open the right app address
+Open [Choose Australian voice](https://summerlearns.vercel.app/voice-check). Choose a voice and tap **Try this voice**. This is a harmless preview that does not start an assessment. The app uses the selected Australian voice on that device, rather than generating another sound file each time.
 
-Use [summerlearns.vercel.app](https://summerlearns.vercel.app/) in laptop Chrome and iPhone Safari. Your Vercel Domains screen confirms it is connected to Production with a valid configuration.
+If no Australian voice appears, on iPhone open Settings → Accessibility → Read & Speak (or Spoken Content) → Voices → English. Download an Australian voice and reopen the page. Check the accent and start-up speed on the actual phone. Each device keeps its own voice choice.
 
-The individual deployment address, `summerlearns-cdb5v6vdz-sam-stacks.vercel.app`, redirects an independent check to Vercel login because of deployment protection. The production address above opens directly.
+## Summer’s starting point and lessons
 
-## Check the voice, then begin when Summer is ready
+Finish the three starting-point sections first: maths, English and reading aloud. New questions start at Year 2, with Year 1 support when needed. These answers should be Summer’s own; helped and skipped answers remain separate. Previously saved results are kept.
 
-1. Use the lock, your existing parent sign-in and six-digit PIN, then return Home. Summer needs no email or separate account.
-2. On Home, tap the **speaker beside Hi Summer** for a harmless adult voice check. It does not start the baseline. Check the accent, pace and volume.
-3. When she is ready, tap **Start warm-up** or **Continue warm-up**. Keep these questions for her own answers: the starting record cannot be reset as an adult practice run.
-4. **Stop for today** keeps completed attempts. Helped and skipped answers stay separate from independent evidence.
-5. For spelling, listen and type. The target stays hidden; spelling does not use the microphone.
-6. For reading, allow the microphone, record her reading, stop, listen and tap **Save reading**. The app keeps the passage silent.
-7. In the parent area, listen and review reading accuracy. Transcription scores are estimates. Unsampled skills should say **Not checked yet**.
+Then choose **Maths lesson** or **English lesson** on Home. Summer can type an answer, explain how she worked it out, ask a question or use a hint. The AI creates its reply from what she says. **Talk to your tutor** records a short idea; check the recognised words and tap Send. These normal-lesson recordings are not saved. Tutor replies can also be read with voice off.
 
-After her real progress is saved, sign in on the other device and check that **Continue warm-up** and her results agree. This checks cross-device saving using her actual attempts.
+Five questions complete a lesson. A completed daily lesson starts the four-week clock from its start time. Visits and starting-point questions do not count. The later check uses fresh matched questions and keeps the original starting record unchanged.
 
-Common messages now load as saved audio, without generating a new voice recording each time. New question audio still uses the connected voice service and may take a few seconds. While it loads you will see **Getting the sound ready…**; during playback you will see **Listen…**. If a download stalls, the app offers a speaker retry.
+## Parent progress
 
-## What the results mean
+The parent area shows her starting point, daily lesson results, strategies she has explained and the four-week comparison when ready. Strategy observations are tentative; the tutor does not assign a fixed learning style or diagnose her level from one answer.
 
-The 60 skills and 240 original questions sample Pre-primary to Year 4 priorities. Topic/year mappings were checked against current SCSA English (implementation 2025) and Mathematics (2026). Results describe sampled skills, not a diagnosis, complete curriculum assessment or official school-year grade.
+Starting-point reading recordings can be played and reviewed in the parent area. These are designed to expire after 30 days; the cleanup job’s actual operation still needs checking. Computer reading estimates are not reliable grades. Your reviews remain saved after the recording expires.
 
-Two skills remain **Not checked yet** until their phoneme audio is checked: `english-pp-initial-sounds` and `english-pp-blend-three-sounds`. Computer voices can say letter names instead of sounds.
+The live provider diagnostic and automated checks use fictional examples. Actual iPhone microphone capture, the new voice timing/accent and cross-device saved progress still need a family check. After Summer saves real progress, sign in on the other device and confirm the same completed lessons appear.
 
-The follow-up preserves the baseline and compares fresh questions for matched skills. Four weeks of actual learning will begin once Phase 2 supplies daily sessions.
-
-## Recordings and spending
-
-Private recordings are designed to become inaccessible after thirty days and be deleted by the cleanup job. Live deletion still needs verification; read-only checks are in `docs/DATABASE.md`. Reviewed scores remain after audio expiry. Supabase backups have separate retention settings.
-
-OpenAI lists up to thirty days of abuse-monitoring logs for speech requests, and no application-state or abuse-monitoring retention for transcription. Processing and saved app recordings are separate.
-
-Keep OpenAI budget alerts enabled; alerts may not stop requests. The app reserves against a US$15 voice cap per UTC month, an estimate rather than an invoice or guaranteed account limit. Hosting and database charges are separate.
-
-## If settings need reconnecting later
-
-The keys and database are already configured; keep them as they are.
-
-- In this chat’s **Environment** panel, the OpenAI key belongs under **Network secrets → SUMMER_OPENAI_KEY**. Never paste it in chat or GitHub.
-- **Environment variables** hold **SUPABASE_URL**, **SUPABASE_PUBLISHABLE_KEY** and **SUMMER_PARENT_EMAIL**. Keep the publishable/`anon` key and parent email binding. **NEXT_TELEMETRY_DISABLED** remains `1`.
-- If a credential changes, update its Vercel server variable under **Settings → Environment Variables**, then redeploy latest `main`. App key names have no `NEXT_PUBLIC_` prefix. Keep **Application Preset → Next.js** and **Root Directory** as `./`.
-- **Configure setup instructions** installs and starts the Codex workspace. Its installation and startup fields are already saved. Vercel deployment and its server variables are managed separately.
-
-If something fails, share the error message without passwords or keys. Keep the existing database and parent account while we investigate.
+The existing keys and Vercel settings stay in place. **Configure setup instructions** prepares the Codex development environment; the app runs on Vercel separately. Do not paste passwords or keys into chat. Technical details and provider retention are in `docs/TUTOR.md`.
