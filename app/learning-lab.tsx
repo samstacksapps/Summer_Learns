@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState,useContext,createContext,type FormEvent} from 'react';
 import type {SkillSummary,SkillComparison,AssessmentSchedule} from '@/lib/assessment';
 import {AudioCache} from '@/lib/audio-cache';
+import {fixedVoicePath} from '@/lib/fixed-voice';
 import models from '@/lib/config/models.json';
 import {Bell,BookOpen,Check,GraduationCap,House,Lightbulb,Lock,Mic,Search,SlidersHorizontal,Square,Target,UserRound,Volume2} from 'lucide-react';
 import {ArrowCircle,Illustration,PageTitle,ProgressRing,ProgressTrack} from './ui/presentation';
@@ -28,7 +29,7 @@ const level:Record<string,string>={unassessed:'Not checked yet',needs_practice:'
 // Reuse one audio element: iPhone audio is primed synchronously by a tap, before any network request.
 const silentWav='UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==';
 export default function LearningLab(){
- const [screen,setScreen]=useState<Screen>('welcome'),[state,setState]=useState<State|null>(null),[question,setQuestion]=useState<Question|null>(null),[answer,setAnswer]=useState(''),[assisted,setAssisted]=useState(false),[hint,setHint]=useState(false),[busy,setBusy]=useState(false),[gettingVoice,setGettingVoice]=useState(false),[error,setError]=useState(''),[caption,setCaption]=useState(''),[word,setWord]=useState(-1),[audioReady,setAudioReady]=useState(false),[report,setReport]=useState<Report|null>(null),[pin,setPin]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[recording,setRecording]=useState(false),[clip,setClip]=useState<Blob|null>(null),[recordingUrl,setRecordingUrl]=useState(''),[subject,setSubject]=useState('all');
+ const [screen,setScreen]=useState<Screen>('welcome'),[state,setState]=useState<State|null>(null),[question,setQuestion]=useState<Question|null>(null),[answer,setAnswer]=useState(''),[assisted,setAssisted]=useState(false),[hint,setHint]=useState(false),[busy,setBusy]=useState(false),[gettingVoice,setGettingVoice]=useState(false),[speaking,setSpeaking]=useState(false),[error,setError]=useState(''),[caption,setCaption]=useState(''),[word,setWord]=useState(-1),[audioReady,setAudioReady]=useState(false),[report,setReport]=useState<Report|null>(null),[pin,setPin]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[recording,setRecording]=useState(false),[clip,setClip]=useState<Blob|null>(null),[recordingUrl,setRecordingUrl]=useState(''),[subject,setSubject]=useState('all');
  const [lessonSearch,setLessonSearch]=useState(''),[lessonSubject,setLessonSubject]=useState('all'),[lessonStatus,setLessonStatus]=useState('all'),[showFilters,setShowFilters]=useState(false);
  const lastPart=useRef<Part|null>(null);
  const parentUnlockedUntil=useRef(0);
@@ -40,7 +41,7 @@ export default function LearningLab(){
  function stopAudio(){
   activeOperation.current++;audio.current?.pause();audioDone.current?.('cancelled');audioDone.current=null;
   if(audio.current){audio.current.onended=null;audio.current.onerror=null;}
-  if(mounted.current){setWord(-1);setGettingVoice(false);}
+  if(mounted.current){setWord(-1);setGettingVoice(false);setSpeaking(false);}
  }
  function cancelWork(){
   actionSequence.current++;voiceGeneration.current++;activeAction.current?.controller.abort();activeAction.current=null;stopAudio();
@@ -90,16 +91,20 @@ export default function LearningLab(){
    if(!mounted.current||generation!==voiceGeneration.current||(action&&!current(action)))throw new DOMException('Cancelled','AbortError');
    const controller=new AbortController(),abort=()=>controller.abort();voiceLoads.current.add(controller);
    if(action){action.controller.signal.addEventListener('abort',abort,{once:true});if(action.controller.signal.aborted)controller.abort();}
+   const fixed=fixedVoicePath(line);let timedOut=false;
+   const timer=setTimeout(()=>{timedOut=true;controller.abort();},fixed?15000:40000);
    try{
-    const response=await fetch('/api/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({line,...(line==='item'&&q?.item?{sessionId:q.sessionId,itemId:q.item.id}:{})}),signal:controller.signal,cache:'no-store'});
+    const response=fixed?await fetch(fixed,{signal:controller.signal,cache:'force-cache'}):await fetch('/api/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({line,...(line==='item'&&q?.item?{sessionId:q.sessionId,itemId:q.item.id}:{})}),signal:controller.signal,cache:'no-store'});
+    if(fixed&&!response.ok)throw new Error('Tap the speaker to try the sound again.');
     if(!response.ok){const result=await response.json();throw new ApiError(result.error||'Ask Mum to help with the sound.',response.status);}
     const blob=await response.blob();if(!blob.size||!response.headers.get('content-type')?.startsWith('audio/'))throw new Error('Tap the speaker to try the sound again.');
     if(controller.signal.aborted)throw new DOMException('Cancelled','AbortError');return blob;
-   }finally{voiceLoads.current.delete(controller);action?.controller.signal.removeEventListener('abort',abort);}
+   }catch(error){if(timedOut&&!action?.controller.signal.aborted)throw new Error('The sound took too long. Tap the speaker to try again.');throw error;}
+   finally{clearTimeout(timer);voiceLoads.current.delete(controller);action?.controller.signal.removeEventListener('abort',abort);}
   });
  }
- // One quiet fixed-line request per signed-in visit. Never starts an assessment,
- // records child audio, retries quota failures, or plays before a Safari tap.
+ // One quiet static download per signed-in visit. Never starts an assessment,
+ // generates paid speech, records child audio, or plays before a Safari tap.
  useEffect(()=>{
   if(screen!=='home'||busy||!state?.signedIn||!state.hasPin||!state.voiceConfigured||prefetchedHome.current)return;
   prefetchedHome.current=true;
@@ -107,18 +112,18 @@ export default function LearningLab(){
  },[screen,busy,state?.signedIn,state?.hasPin,state?.voiceConfigured]);
  function prime():Promise<void>{
   const element=audio.current;if(!element)return Promise.resolve();
+  setGettingVoice(true);
   if(!audioPrime.current)audioPrime.current=URL.createObjectURL(new Blob([Uint8Array.from(atob(silentWav),character=>character.charCodeAt(0))],{type:'audio/wav'}));
   element.src=audioPrime.current;
   // Let tap-initiated playback start before say() pauses it. Blob audio also
   // follows the same media policy as the voice and saved reading clips.
   return element.play().then(()=>{},()=>{});
  }
- async function say(line:string,text:string,action:Action,q=question):Promise<Playback>{
+ async function say(line:string,text:string,action:Action,q=question,preparedAudio?:Promise<Blob>):Promise<Playback>{
   if(!current(action))return 'cancelled';stopAudio();const operation=activeOperation.current;
   setCaption(text);captionRef.current=text;setWord(-1);if(line==='item')setAudioReady(false);setGettingVoice(true);
   let blob:Blob;
-  try{blob=await loadAudio(line,q,action);}catch(error){if(!current(action)||operation!==activeOperation.current)return 'cancelled';throw error;}
-  finally{if(mounted.current&&operation===activeOperation.current)setGettingVoice(false);}
+  try{blob=await (preparedAudio??loadAudio(line,q,action));}catch(error){if(!current(action)||operation!==activeOperation.current)return 'cancelled';setGettingVoice(false);throw error;}
   if(!current(action)||operation!==activeOperation.current)return 'cancelled';
   const element=audio.current;if(!element)return 'cancelled';
   if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);audioUrl.current=URL.createObjectURL(blob);element.src=audioUrl.current;
@@ -126,7 +131,7 @@ export default function LearningLab(){
    let settled=false;
    const done=(result:Playback,error?:Error)=>{
     if(settled)return;settled=true;if(audioDone.current===cancel)audioDone.current=null;
-    if(operation===activeOperation.current){element.onended=null;element.onerror=null;}
+    if(operation===activeOperation.current){element.onended=null;element.onerror=null;if(mounted.current){setGettingVoice(false);setSpeaking(false);}}
     if(error)reject(error);else resolve(result);
    };
    const cancel=(result:Playback)=>done(result);audioDone.current=cancel;
@@ -135,18 +140,19 @@ export default function LearningLab(){
     else done('cancelled');
    };
    element.onerror=()=>done('cancelled',new Error('Tap the speaker to try the sound again.'));
-   void element.play().catch(()=>done('cancelled',new Error('Tap the speaker to start the sound.')));
+   void element.play().then(()=>{if(current(action)&&operation===activeOperation.current){setGettingVoice(false);setSpeaking(true);}}).catch(()=>done('cancelled',new Error('Tap the speaker to start the sound.')));
   });
  }
- async function replay(line:string,text:string){const action=startAction(),primed=prime();try{await primed;await say(line,text,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
+ async function replay(line:string,text:string){if(!state?.signedIn){cancelWork();setScreen('parent');setError('Ask Mum to sign in to use the voice.');return;}const action=startAction(),primed=prime();try{await primed;await say(line,text,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
  function words(text:string){return text.split(/\s+/).map((token,index)=><span key={index} className={index===word&&caption===text?'spoken-word':''}>{token} </span>);}
- async function showQuestion(q:Question,action:Action){
+ function prepareQuestionAudio(q:Question,action:Action){if(!q.item||q.sessionEnded||!current(action))return undefined;const pending=loadAudio('item',q,action);void pending.catch(()=>{});return pending;}
+ async function showQuestion(q:Question,action:Action,preparedAudio?:Promise<Blob>){
   if(!current(action))return;setQuestion(q);readyAt.current=0;setAnswer('');setHint(false);setAssisted(false);setClip(null);setRecordingUrl('');setError('');
   if(q.stopped){setQuestion(null);setAudioReady(false);setScreen('home');setCaption('Your answers are saved. Come back when you’re ready.');void refresh(action);return;}
   if(q.part==='maths'||q.part==='english'||q.part==='reading')lastPart.current=q.part;
   if(q.sessionEnded){setScreen('win');await say('win','Session done. Nice work. Your answers are saved.',action,q);if(current(action))void refresh(action);return;}
   setScreen('question');setAudioReady(false);
-  if(q.item)await say('item',q.item.kind==='spelling'?'Listen to the word and its sentence. Then type the word.':q.item.prompt,action,q);
+  if(q.item)await say('item',q.item.kind==='spelling'?'Listen to the word and its sentence. Then type the word.':q.item.prompt,action,q,preparedAudio);
  }
  async function begin(){
   const action=startAction(),primed=prime();
@@ -164,9 +170,10 @@ export default function LearningLab(){
   try{
    const q=await request<Question>('/api/answer',{sessionId:question.sessionId,itemId:question.item.id,answer:skip?'':answer,responseMs:Math.round(performance.now()-readyAt.current),assisted},action.controller.signal);
    if(!current(action))return;if(q.stopped){await showQuestion(q,action);return;}setQuestion(q);setAnswer('');setHint(false);setAssisted(false);setAudioReady(false);
+   const prepared=q.brainBreak?undefined:prepareQuestionAudio(q,action);
    try{await say(q.feedback||'good',feedback[q.feedback||'good'],action);}catch(error){if(error instanceof ApiError&&error.status===401)throw error;/* Saved answers still advance if feedback fails. */}
    if(!current(action))return;
-   if(q.brainBreak&&!q.sessionEnded){setScreen('break');await say('break','Time for a movement break. Try a goanna walk, then come back when you’re ready.',action);}else await showQuestion(q,action);
+   if(q.brainBreak&&!q.sessionEnded){setScreen('break');await say('break','Time for a movement break. Try a goanna walk, then come back when you’re ready.',action);}else await showQuestion(q,action,prepared);
   }catch(error){actionError(error,action);}finally{finishAction(action);}
  }
  async function stop(){
@@ -197,8 +204,9 @@ export default function LearningLab(){
    const form=new FormData();form.set('audio',clip,'reading');form.set('sessionId',question.sessionId);form.set('itemId',question.item.id);form.set('durationMs',String(Math.round(recordDuration.current)));form.set('assisted',String(assisted));
    const response=await fetch('/api/reading',{method:'POST',body:form,signal:action.controller.signal}),q=await response.json();if(!response.ok)throw new ApiError(q.error,response.status);
    if(!current(action))return;if(q.stopped){await showQuestion(q,action);return;}setQuestion(q);setClip(null);setRecordingUrl('');setAudioReady(false);
+   const prepared=prepareQuestionAudio(q,action);
    try{await say('good','Reading saved. Mum can listen later.',action);}catch(error){if(error instanceof ApiError&&error.status===401)throw error;/* Saved reading still advances if feedback fails. */}
-   if(current(action))await showQuestion(q,action);
+   if(current(action))await showQuestion(q,action,prepared);
   }catch(error){actionError(error,action);}finally{finishAction(action);}
  }
  async function signIn(event:FormEvent){event.preventDefault();const action=startAction();try{await request('/api/auth',{email,password},action.controller.signal);if(!current(action))return;setPassword('');await refresh(action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
@@ -241,7 +249,7 @@ export default function LearningLab(){
    <button className="icon-button" aria-label="Parent area" disabled={busy||recording} onClick={()=>void go('parent')}><Lock aria-hidden="true" size={22} strokeWidth={1.8}/></button>
   </header>
   {error&&<div className="error-message" role="alert">{error}</div>}
-  {busy&&<p className="busy-note" role="status">{gettingVoice?'Getting the sound ready…':'Just a moment…'}</p>}
+  {busy&&<p className="busy-note" role="status">{gettingVoice?'Getting the sound ready…':speaking?'Listen…':'Just a moment…'}</p>}
   <main>
    {screen==='welcome'&&<section className="welcome-screen card">
     <div className="welcome-art"><Illustration name="welcome-hero" width={640} height={640}/><span className="welcome-sticker" aria-hidden="true">Begin</span></div>

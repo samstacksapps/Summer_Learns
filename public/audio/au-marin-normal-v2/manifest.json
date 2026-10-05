@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "voiceRevision": "au-marin-normal-v2",
+  "configHash": "443c7529bc7d87898fe2f3934293ea79fb7c3beac64c4005de26874264a777d4",
+  "model": "gpt-4o-mini-tts-2025-12-15",
+  "voice": "marin",
+  "speed": 1,
+  "format": "mp3",
+  "entries": {
+    "hello": {
+      "file": "hello.mp3",
+      "contentHash": "8d8cf693996ee44c3b12cc819d058fe5e4fd307fd9fca4afd1f9db2a078d951e",
+      "audioHash": "61c0cb5eda3824cd901a172c4304a879f851d0694fd4953e1d6c524fc3a59f57",
+      "bytes": 89856,
+      "durationMs": 5616
+    },
+    "start": {
+      "file": "start.mp3",
+      "contentHash": "cc0c229b6df6d56ae74adc264c3c5a13ff4c84724b72d394f20f91c1e63dc749",
+      "audioHash": "abda255e83e40016f794ce7c43bd0ff0c851dbe2c4c53c936fa769ec6d6e2b3b",
+      "bytes": 59520,
+      "durationMs": 3720
+    },
+    "maths": {
+      "file": "maths.mp3",
+      "contentHash": "d51cff53b7ebf85b5be8e176520bdce5aaac25de87fee7e1ee9424dbe1248367",
+      "audioHash": "bafbe3b56a8177d9a48747a16dd8857856ef6b36d2252a7331007e2857cac13a",
+      "bytes": 49920,
+      "durationMs": 3120
+    },
+    "english": {
+      "file": "english.mp3",
+      "contentHash": "6ec097bd6ea47794cec007d3662388bbf4a8ce08720e46078df5bc05c0364157",
+      "audioHash": "a82cf883d15a5c9efb8c8c19a64e992e55a7b35513df8552d29c486cd0e7a1a6",
+      "bytes": 64896,
+      "durationMs": 4056
+    },
+    "reading": {
+      "file": "reading.mp3",
+      "contentHash": "0ca85a12b46c8ba51a136b204048bba3e6aba02f3561723351351369daf2e307",
+      "audioHash": "64f029492464eb70a8bdd4865b1707b5bcd26ba317a3039c1f7a54b85f5bf770",
+      "bytes": 119424,
+      "durationMs": 7464
+    },
+    "spelling": {
+      "file": "spelling.mp3",
+      "contentHash": "d1cf462bf44be0ed1e5e6ded792037250ccc2911c83604703f219ad8971fc3ec",
+      "audioHash": "5636b6d917838d636d3fa22e1cb7c807673620d23ba1415bb272c7536c7d6bfc",
+      "bytes": 83328,
+      "durationMs": 5208
+    },
+    "good": {
+      "file": "good.mp3",
+      "contentHash": "5fd9c110b0832d17ab4395367087dab41a3549393246c6a5a2f49258f713d074",
+      "audioHash": "6ec22849ddd1be60c6551fd04c45e2e1a6ce230907ed5aa60331833a56cd4b3e",
+      "bytes": 34560,
+      "durationMs": 2160
+    },
+    "skip": {
+      "file": "skip.mp3",
+      "contentHash": "f616963e452e5d83f540b6d81d6515df3c655ed5808e908f81105ca72e91ea97",
+      "audioHash": "5450a663c91a9e48cfc3abfaecc3cb4df07695ff0f19df839c4674744839e805",
+      "bytes": 56064,
+      "durationMs": 3504
+    },
+    "try": {
+      "file": "try.mp3",
+      "contentHash": "f979ca41c15e739b0f17e808812c72bd67c41973e5eefbad001ab4fe981ac941",
+      "audioHash": "226888141a89e83fe3972d55203f0386a012d01042706e6ec7d03fd4c7a64477",
+      "bytes": 41856,
+      "durationMs": 2616
+    },
+    "rush": {
+      "file": "rush.mp3",
+      "contentHash": "4718eef433884c50d70e800157e0f6cea3fe2eda40c6e724be7908b4cf51040c",
+      "audioHash": "c6f55f8848ac130e87b57c55e0b5c8e8b49391532fc917d2b9201c563b76f080",
+      "bytes": 48000,
+      "durationMs": 3000
+    },
+    "hint": {
+      "file": "hint.mp3",
+      "contentHash": "263aefcf21c3048017a11d5cd257a0cf5aae251235170b91f105cc6f1c48c79d",
+      "audioHash": "5d27dafb5b16d36c933feea31bc503aa27e481a3d8ffcc8e217ff555853fa500",
+      "bytes": 69888,
+      "durationMs": 4368
+    },
+    "break": {
+      "file": "break.mp3",
+      "contentHash": "79afd598a21541b238a2568539feb206f668634700185b4ab324044abf250a6e",
+      "audioHash": "8f68dd55e15eebf83d03c75eca389bc67c931d0f4e9f4f807f790703eb66da68",
+      "bytes": 80256,
+      "durationMs": 5016
+    },
+    "finish": {
+      "file": "finish.mp3",
+      "contentHash": "0179b8d4e2d89e33c37915a9e7d85bff4ec8881585fab7d499b9a4dc9dce537d",
+      "audioHash": "2d343f9441cd8555275502afd938ab0343dd7a4a53870d646c93a6f5e513e71b",
+      "bytes": 58368,
+      "durationMs": 3648
+    },
+    "win": {
+      "file": "win.mp3",
+      "contentHash": "8a6419bbe3bc9efef86a6160ac0bb3951fddd061f785102a6a5208abea9c085c",
+      "audioHash": "d56a7ecac09937a65d4b3470caceec5031bb03dd223da79269a09d83efd047a1",
+      "bytes": 64128,
+      "durationMs": 4008
+    },
+    "stop": {
+      "file": "stop.mp3",
+      "contentHash": "50f6a6464fa10f0a17b7b1d3634d7a956a29e7d07732b5dd99df23fa561669c1",
+      "audioHash": "3d0996aecf3bc41ea5f74bff22f9f9c37c9ce5a2860ac51b2880d33bc2ef00b1",
+      "bytes": 71424,
+      "durationMs": 4464
+    },
+    "recording": {
+      "file": "recording.mp3",
+      "contentHash": "81ee874c084b18b1f447849bfdc1bea0c43e9bccb35adfcb949fa1a1fe026332",
+      "audioHash": "b38dc80a5d0edcc8533412b14f743c10f25baf116d22cf50f6bc5ede80f53378",
+      "bytes": 71424,
+      "durationMs": 4464
+    },
+    "replay": {
+      "file": "replay.mp3",
+      "contentHash": "9651698ec2e35dd5fc9ef7594a0092583d47a55d8d972e2bcb098096c64c52bb",
+      "audioHash": "c4c72ec1f448a2bc853cf778d6fc2a15179d4b4938c60b24403e8e272207c899",
+      "bytes": 47232,
+      "durationMs": 2952
+    },
+    "home": {
+      "file": "home.mp3",
+      "contentHash": "51fc359999f51a4c50bbfafaca0dd03b90acb7611b7cf582611167f2fc8be0c0",
+      "audioHash": "ae19b129bcfd47145545989bf793fc1a8b1da000929d572ab23f52c28b0c0cfa",
+      "bytes": 75264,
+      "durationMs": 4704
+    },
+    "menu": {
+      "file": "menu.mp3",
+      "contentHash": "8b83e2534ae4f5751f6fd2c9386655c1d530ad3120c52708fac28cf3db7f638b",
+      "audioHash": "ac3978452ec3426146ae658c62fcafa4f71c25182bcf9d5a4c829dac9a6f25ef",
+      "bytes": 61824,
+      "durationMs": 3864
+    }
+  }
+}

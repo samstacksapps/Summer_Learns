@@ -6,7 +6,7 @@ Daily sessions and the personalised AI tutor are not implemented yet; they belon
 
 ## What is working
 
-The redesign was pushed to GitHub `main` as `d902334`. The live production homepage opens and the private parent route requires sign-in. You confirmed parent sign-in, the PIN and audible voice. A fresh adult Marin voice check succeeded in about 3.3 seconds; phone timing may differ. All41 automated checks, TypeScript and the updated production build pass.
+The live production homepage opens and the private parent route requires sign-in. You confirmed parent sign-in, the PIN and audible voice on your phone. The long delay before common messages has been addressed with ready-to-play audio using the same Australian Marin settings. All47 automated checks, TypeScript and the updated production build pass. The revised phone timing still needs your check.
 
 All eight Supabase tables exist and deny anonymous access; public sign-ups are disabled. The cleanup job is registered. Real iPhone microphone capture, cross-device progress and successful deletion of expired recordings remain unverified.
 
@@ -27,6 +27,8 @@ The individual deployment address, `summerlearns-cdb5v6vdz-sam-stacks.vercel.app
 7. In the parent area, listen and review reading accuracy. Transcription scores are estimates. Unsampled skills should say **Not checked yet**.
 
 After her real progress is saved, sign in on the other device and check that **Continue warm-up** and her results agree. This checks cross-device saving using her actual attempts.
+
+Common messages now load as saved audio, without generating a new voice recording each time. New question audio still uses the connected voice service and may take a few seconds. While it loads you will see **Getting the sound ready…**; during playback you will see **Listen…**. If a download stalls, the app offers a speaker retry.
 
 ## What the results mean
 
