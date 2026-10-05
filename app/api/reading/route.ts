@@ -27,6 +27,6 @@ export async function POST(request:Request){try{
  const {data:recording,error}=await db.rpc('save_reading_attempt',{p_assessment_id:run.id,p_session_id:session.id,p_item_id:item.id,p_skill_id:item.skillId,p_year_level:item.yearLevel,p_audio_base64:Buffer.from(await audio.arrayBuffer()).toString('base64'),p_mime_type:mime,p_reading_estimate:estimate,p_response_ms:Math.round(duration),p_assisted:form.get('assisted')==='true'});
  if(error||!recording)throw new Error('SAVE_FAILED');
  const h=await history(db,user.id),next=nextQuestion(run,session,h);
- const result=next?questionPayload(run,session,next):await concludePart(db,user.id,run,session);
+ const result=next?questionPayload(run,session,next,h):await concludePart(db,user.id,run,session);
  return json({...result,feedback:'good',recordingSaved:true,readingEstimateAvailable:estimate!==null});
 }catch(error){return failure(error);}}

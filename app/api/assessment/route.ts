@@ -26,5 +26,5 @@ export async function POST(request:Request){try{
  if(!session){const {data,error}=await db.from('assessment_sessions').insert({assessment_id:run.id,owner_id:user.id,part}).select('*').single();if(error?.code==='23505'){const retry=await db.from('assessment_sessions').select('*').eq('assessment_id',run.id).eq('owner_id',user.id).eq('part',part).eq('status','in_progress').single();if(retry.error||!retry.data)throw new Error('SAVE_FAILED');session=retry.data as SessionRow;}else{if(error||!data)throw new Error('SAVE_FAILED');session=data as SessionRow;}}
  h=await history(db,user.id);const item=nextQuestion(run,session,h);
  if(!item)return json(await concludePart(db,user.id,run,session));
- return json(questionPayload(run,session,item));
+ return json(questionPayload(run,session,item,h));
 }catch(error){return failure(error);}}

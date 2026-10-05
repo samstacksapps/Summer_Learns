@@ -14,5 +14,5 @@ export async function POST(request:Request){try{
  const h=await history(db,user.id);const next=nextQuestion(run,session,h);
  const feedback=attempt.correct===null?'skip':attempt.likelyGuess?'rush':attempt.correct?'good':'try';
  if(!next)return json({...await concludePart(db,user.id,run,session),feedback});
- return json({...questionPayload(run,session,next),feedback,brainBreak:h.attempts.filter(a=>a.session_id===session.id).length%4===0});
+ return json({...questionPayload(run,session,next,h),feedback,brainBreak:h.attempts.filter(a=>a.session_id===session.id).length%4===0});
 }catch(error){return failure(error);}}

@@ -1,0 +1,22 @@
+{
+  "profile_version": "1.0",
+  "source": {"label": "User supplied lavender learning-app reference", "ownership": "unknown", "kind": "image"},
+  "jobs": ["color", "typography", "hierarchy", "grid", "spacing", "restraint"],
+  "observations": [
+    {"dimension": "Lighting", "evidence": "Illustrations have soft shadows and broad highlights.", "interpretation": "Keep placeholder gradients soft and interface shadows restrained; reserve character art for supplied PNGs.", "confidence": 0.9},
+    {"dimension": "Palette", "evidence": "Lavender surfaces dominate, with navy navigation and peach actions.", "interpretation": "Use the user's exact theme tokens and a single peach primary action.", "confidence": 1},
+    {"dimension": "Texture and finish", "evidence": "Clay-like illustrated subjects sit on clean flat UI panels.", "interpretation": "Keep interface surfaces flat; use replaceable abstract gradient placeholders rather than attempting clay figures in code.", "confidence": 0.95},
+    {"dimension": "Spatial geometry", "evidence": "Large rounded cards, circle buttons and ample separation frame one focal heading per screen.", "interpretation": "Use 28px cards, pill actions, a fixed navy navigation bar, one-column mobile and centred multi-column desktop grids.", "confidence": 0.95},
+    {"dimension": "Mood and tension", "evidence": "Strong dark typography balances gentle backgrounds and limited sticker accents.", "interpretation": "Speak to a capable nine-year-old; use bold italic title lines and no more than two decorative accents per screen.", "confidence": 0.95}
+  ],
+  "signature": {"shadow_softness": null, "palette_saturation": null, "negative_space": null},
+  "rules": [
+    {"job": "color", "rule": "Peach marks the main action and active navigation; navy anchors text and controls.", "evidence": "Peach start actions and an active navigation circle sit against lavender cards.", "strength": "high", "transferable": true},
+    {"job": "typography", "rule": "Use a bold upright title line followed by a bold italic line, with separate readable question typography.", "evidence": "The lesson-list heading uses an upright first line and italic second line.", "strength": "high", "transferable": true},
+    {"job": "grid", "rule": "Organise content as roomy rounded cards and round shortcut icons, adapting the grid to the viewport.", "evidence": "Sections use cards and circular icons with consistent space between them.", "strength": "high", "transferable": true},
+    {"job": "restraint", "rule": "Limit decorative treatments to one or two accents, and keep only one primary task action per screen.", "evidence": "A highlighted word or circled word adds emphasis without covering the card text.", "strength": "high", "transferable": true}
+  ],
+  "anti_rules": ["No reference character identities or coding content.", "No emoji icons, rainbow colours or bubbly fonts.", "No fabricated learning levels, rewards or scores.", "No changes to authored lesson questions, marking or stored baseline data."],
+  "similarity_guard": {"copy_risk": "low", "protected_elements": ["Reference character illustrations and names"], "must_transform": ["Use Summer's name, existing maths and English content, original placeholders and a responsive desktop layout."]},
+  "confidence": 0.95
+}

@@ -1,0 +1,12 @@
+{
+  "taste_state": {
+    "reference_profile": "docs/design-reference.json",
+    "status": "applied",
+    "palette": "User-specified lavender, navy, peach, sky and pink tokens",
+    "typography": "Plus Jakarta Sans UI and italic titles; Lexend questions and reading",
+    "composition": "Single primary action, rounded cards, floating navy navigation and responsive grids",
+    "art": "Twelve replaceable original gradient PNG placeholders",
+    "preserved": "Existing adaptive assessment, voice controls, parent access, recording review and saved progress",
+    "limitations": ["3D clay artwork awaits the user's replacement PNGs.", "Existing warm-ups adapt automatically; there are no manually selectable lesson levels.", "Reading estimates remain in the parent report rather than becoming a child-facing grade."]
+  }
+}

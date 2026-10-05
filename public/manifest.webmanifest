@@ -1,1 +1,1 @@
-{"name":"Summer’s Learning Lab","short_name":"Summer’s Lab","start_url":"/","display":"standalone","background_color":"#eaf5ff","theme_color":"#eaf5ff","icons":[{"src":"/assets/star.png","sizes":"256x256","type":"image/png","purpose":"any"}]}
+{"name":"Summer’s Learning Lab","short_name":"Summer’s Lab","start_url":"/","display":"standalone","background_color":"#EEEDFB","theme_color":"#EEEDFB","icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},{"src":"/app-icon.png","sizes":"192x192","type":"image/png","purpose":"any"}]}

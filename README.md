@@ -2,11 +2,13 @@
 
 A private maths and English tutor for Summer and her parent. The current build implements **Phase 1 preparation**: baseline warm-up, fresh four-week reassessment logic, source-mapped skill samples, server-side voice routes, parent sign-in/PIN, owned progress storage and reading review.
 
-**Summer has not been assessed. The app is not yet live-ready.** At the last connected checks, the OpenAI and Supabase keys worked, but speech returned `429 credit_balance_exhausted` and the Supabase `profiles` probe returned `404`. Add OpenAI API Billing credit and create the tables with `supabase/schema.sql`, then recheck the services. Real authentication, cross-device saves, scheduled cleanup and iPhone audio/microphone checks remain outstanding. A successful Vercel deployment is not yet verified. Normal learning sessions are Phase 2, so the four-week clock has not begun.
+The parent has confirmed that the Vercel app opens, parent setup is complete and voice plays. The Supabase schema has been installed; anonymous table probes confirm the tables exist and block access. The retention schedule returned job ID 1, which confirms registration rather than a successful deletion run. A live diagnostic speech request with the updated voice returned playable MP3 audio. Cross-device progress, actual cron execution and iPhone microphone capture remain to be verified with the connected family account. Normal daily learning sessions are Phase 2 and are not implemented; visits and warm-ups do not start the four-week clock.
 
 All sixty skill topics and year bands have been checked against current official SCSA sources: English for implementation in 2025 and Mathematics for implementation in 2026. The original questions are focused, non-standardised samples, not a complete curriculum or validated diagnostic assessment. Two skills, `english-pp-initial-sounds` and `english-pp-blend-three-sounds`, remain deferred and unassessed until their phoneme audio is checked by listening.
 
 For the parent, start with [the plain-English connection guide](docs/SETUP-FOR-MUM.md). Database details are in [DATABASE.md](docs/DATABASE.md). The earlier three-screen preview remains in `index.html`; it is a design artefact with sample scores, not the connected app.
+
+The current interface uses Summer’s lavender, navy and peach design system, self-hosted Plus Jakarta Sans and Lexend, and Lucide outline icons. See [the redesign handover](docs/REDESIGN.md) for file changes and verification, [the illustration guide](docs/ILLUSTRATIONS.md) for all 12 replaceable PNG slots, and [the spelling audit](docs/american-spelling-audit.md) for the unchanged lesson content.
 
 ## Development
 
@@ -40,10 +42,10 @@ Copy `.env.example` to `.env.local` only if no existing local configuration need
 
 ## Verification status
 
-All nineteen automated assessment/content checks, TypeScript checks and the production build passed. Schema ownership, immutable records, atomic reading saves, PIN limits and concurrent budget caps were exercised on disposable PostgreSQL17. Supabase’s real authentication and its `pg_cron` scheduler still require cloud-project validation after the tables are created. Browser checks using mocked responses do not establish live end-to-end authentication, microphone capture or voice playback; none of those has been verified with a real child assessment.
+All 31 automated assessment/content, audio-cache and presentation-progress checks, TypeScript and the production build passed. Schema ownership, immutable records, atomic reading saves, PIN limits and concurrent budget caps were exercised on disposable PostgreSQL17. Redesigned browser flows use mocked private API responses and a synthetic Chromium microphone; they verify controls and cancellation without saving real child data. These checks do not establish live end-to-end progress saving or iPhone behaviour. The latest Vercel deployment cannot be independently checked from this environment because its runtime network policy blocks the supplied hostname.
 
 Current official OpenAI documentation was reviewed for model/request fields and endpoint retention. Speech requests may have abuse-monitoring logs retained for up to thirty days; the transcription endpoint lists no application-state or abuse-monitoring retention. Supabase backups have separate retention from the app’s thirty-day recording deletion and require project-specific review.
 
 ## Data and assets
 
-No surname, school, address, birth date, photos, analytics or free-form answer transcripts are stored. Only reading activities request the microphone. Fonts and Microsoft Fluent Emoji3D illustrations are self-hosted with licences in `public/assets`. Next.js development telemetry is disabled through environment configuration. Model names and official SDK references are in `lib/config/models.json`; current curriculum sources, mapping limits and assessment audio caveats are in `data/curriculum-notes.md`.
+No surname, school, address, birth date, photos, analytics or free-form answer transcripts are stored. Only reading activities request the microphone. Fonts are self-hosted with licences in `public/assets`; original gradient placeholders are in `public/illustrations`. Legacy emoji assets belong to the earlier static preview and are not used by the connected interface. Next.js development telemetry is disabled through environment configuration. Model names and official SDK references are in `lib/config/models.json`; current curriculum sources, mapping limits and assessment audio caveats are in `data/curriculum-notes.md`.
