@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#eaf5ff">
+  <title>Summer’s Learning Lab · Home</title>
+  <link rel="icon" href="assets/star.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M11 4 5 9H2v6h3l6 5V4Z"/><path d="M15 8c2 2 2 6 0 8m3-11c4 4 4 10 0 14"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5C8 2 3 3 2 4v15c4-2 8-1 10 1 2-2 6-3 10-1V4c-1-1-6-2-10 1v15Z"/></symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v7a5 5 0 0 1-10 0V3Zm0 2H3v3c0 3 2 4 4 4m10-7h4v3c0 3-2 4-4 4m-5 3v6m-5 0h10"/></symbol>
+      <symbol id="i-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    </defs>
+  </svg>
+  <div class="preview-note">For Mum: design preview · all scores are examples</div>
+  <div class="app-shell">
+    <header class="header">
+      <a class="brand" href="#home" aria-label="Summer’s Learning Lab home"><span class="brand-icon"><img src="assets/star.png" alt="" width="36" height="36"></span><span>Summer’s<br><strong>Learning Lab</strong></span></a>
+      <button class="icon-button parent-button" data-notice="parent" aria-label="Parent sign-in preview"><svg><use href="#i-lock"/></svg></button>
+    </header>
+    <main>
+      <section class="screen home-screen" id="home" aria-labelledby="home-title">
+        <div class="home-card card">
+          <div class="home-copy">
+            <div class="section-label">A little adventure for your brain</div>
+            <div class="read-heading"><h1 id="home-title" tabindex="-1">Hi, Summer!</h1><button class="speaker" data-read="home-greeting" aria-label="Hear the greeting"><svg><use href="#i-speaker"/></svg></button></div>
+            <p class="home-intro">Small steps.<br> Lots of little wins.</p>
+            <div class="home-action">
+              <button class="primary" data-go="question">Let’s go <svg><use href="#i-arrow"/></svg></button>
+              <button class="speaker" data-read="lets-go" aria-label="Hear Let’s go"><svg><use href="#i-speaker"/></svg></button>
+            </div>
+          </div>
+          <div class="mascot-scene">
+            <div class="mascot-orbit" aria-hidden="true"></div>
+            <span class="little-spark spark-a" aria-hidden="true">✦</span><span class="little-spark spark-b" aria-hidden="true">✧</span>
+            <div class="mascot-bubble"><span>Let’s give it<br>a gecko!</span><button class="speaker" data-read="mascot" aria-label="Hear the gecko’s message"><svg><use href="#i-speaker"/></svg></button></div>
+            <img class="mascot-image" src="assets/lizard.png" alt="A friendly green gecko waving its little feet" width="256" height="256">
+          </div>
+        </div>
+        <div class="latest-best card">
+          <span class="trophy-tile"><img src="assets/trophy.png" alt="" width="50" height="50"></span>
+          <div><p>My latest best <span class="sample-label">Example</span></p><strong>8 out of 10</strong></div>
+          <button class="speaker" data-read="latest-best" aria-label="Hear my latest best"><svg><use href="#i-speaker"/></svg></button>
+        </div>
+      </section>
+      <section class="screen question-screen" id="question" aria-labelledby="question-title" hidden>
+        <div class="screen-top"><button class="back-button" data-go="home"><svg><use href="#i-arrow"/></svg>Back</button><div class="subject-pill"><img src="assets/books.png" alt="" width="30" height="30">A little maths<button class="speaker" data-read="maths" aria-label="Hear Back and A little maths"><svg><use href="#i-speaker"/></svg></button></div></div>
+        <div class="question-card card">
+          <div class="read-heading"><h1 id="question-title" tabindex="-1">How many geckos?</h1><button class="speaker" data-read="question" aria-label="Hear the question"><svg><use href="#i-speaker"/></svg></button></div>
+          <p class="question-story">3 geckos. 2 more join them.<br>How many now?</p>
+          <div class="gecko-groups" aria-hidden="true"><div class="gecko-group"><img src="assets/lizard.png" alt=""><img src="assets/lizard.png" alt=""><img src="assets/lizard.png" alt=""></div><span class="plus">+</span><div class="gecko-group"><img src="assets/lizard.png" alt=""><img src="assets/lizard.png" alt=""></div></div>
+          <div class="sum-row"><p class="sum">3 + 2 = <span>?</span></p><button class="speaker" data-read="sum" aria-label="Hear 3 plus 2"><svg><use href="#i-speaker"/></svg></button></div>
+          <form id="sample-answer-form">
+            <div class="label-row"><label for="answer">Your answer</label><button type="button" class="speaker" data-read="answer-label" aria-label="Hear the answer instruction"><svg><use href="#i-speaker"/></svg></button></div>
+            <input id="answer" name="answer" type="text" inputmode="numeric" maxlength="3" placeholder="Type a number" autocomplete="off" aria-describedby="sample-question-note">
+            <div class="answer-action"><button type="submit" class="primary">Check my answer <svg><use href="#i-arrow"/></svg></button><button type="button" class="speaker" data-read="check" aria-label="Hear Check my answer"><svg><use href="#i-speaker"/></svg></button></div>
+          </form>
+          <div class="hint-action"><button class="hint-button" id="hint-button" aria-expanded="false" aria-controls="hint"><img src="assets/lightbulb.png" alt="" width="36" height="36"><span>A little hint, please</span></button><button class="speaker" data-read="hint-button" aria-label="Hear the hint button"><svg><use href="#i-speaker"/></svg></button></div>
+          <div id="hint" class="hint-card" hidden><img src="assets/lizard.png" alt="" width="70" height="70"><p>Start with 3.<br>Can you count on 2 more?</p><button class="speaker" data-read="hint" aria-label="Hear the hint"><svg><use href="#i-speaker"/></svg></button></div>
+          <div class="sample-question-note" id="sample-question-note"><p>A practice screen.<br>No scores saved.</p><button class="speaker" data-read="sample" aria-label="Hear the practice screen note"><svg><use href="#i-speaker"/></svg></button></div>
+        </div>
+        <div class="gentle-note"><p>No rush. We can try together.</p><button class="speaker" data-read="no-rush" aria-label="Hear the encouragement"><svg><use href="#i-speaker"/></svg></button></div>
+      </section>
+      <section class="screen bests-screen" id="bests" aria-labelledby="bests-title" hidden>
+        <div class="bests-heading"><div class="read-heading"><h1 id="bests-title" tabindex="-1">My personal bests</h1><button class="speaker" data-read="bests-title" aria-label="Hear personal bests"><svg><use href="#i-speaker"/></svg></button></div><p>Just me, getting a little better.</p></div>
+        <div class="bests-card card">
+          <div class="bests-card-top"><span class="example-pill">Example scores</span><button class="speaker" data-read="scores" aria-label="Hear all three example scores"><svg><use href="#i-speaker"/></svg></button></div>
+          <div class="trophy-scene"><span class="trophy-circle" aria-hidden="true"></span><img src="assets/trophy.png" alt="A shiny trophy for Summer’s own best" width="140" height="140"><img class="trophy-star" src="assets/star.png" alt="" width="40" height="40"></div>
+          <div class="podium" aria-label="Three of Summer’s sample scores">
+            <div class="place second"><strong>7<span>out of 10</span></strong><div class="podium-block"><span class="medal">2</span></div></div>
+            <div class="place first"><strong>8<span>out of 10</span></strong><div class="podium-block"><span class="medal">1</span><span>My best!</span></div></div>
+            <div class="place third"><strong>6<span>out of 10</span></strong><div class="podium-block"><span class="medal">3</span></div></div>
+          </div>
+          <div class="week-score"><span class="week-star"><img src="assets/star.png" alt="" width="42" height="42"></span><div><p>This week</p><strong>7 out of 10</strong></div><button class="speaker" data-read="week-score" aria-label="Hear this week’s example score"><svg><use href="#i-speaker"/></svg></button></div>
+        </div>
+        <div class="gentle-note"><p>Every little try counts.</p><button class="speaker" data-read="every-try" aria-label="Hear the encouragement"><svg><use href="#i-speaker"/></svg></button></div>
+        <div class="bests-action"><button class="primary" data-go="question">Have a little go <svg><use href="#i-arrow"/></svg></button><button class="speaker" data-read="have-go" aria-label="Hear Have a little go"><svg><use href="#i-speaker"/></svg></button></div>
+      </section>
+    </main>
+  </div>
+  <div class="nav-wrap"><nav class="bottom-nav" aria-label="Summer’s menu">
+    <a href="#home" data-screen="home"><svg><use href="#i-home"/></svg><span>Home</span></a>
+    <a href="#question" data-screen="question"><svg><use href="#i-book"/></svg><span>Learn</span></a>
+    <a href="#bests" data-screen="bests"><svg><use href="#i-trophy"/></svg><span>Beat My<br>Score</span></a>
+    <button data-notice="me"><svg><use href="#i-me"/></svg><span>Me</span></button>
+    <button class="nav-speaker" data-read="menu" aria-label="Hear the menu: Home, Learn, Beat My Score, Me"><svg><use href="#i-speaker"/></svg></button>
+  </nav></div>
+  <dialog id="notice" aria-labelledby="notice-title" aria-describedby="notice-copy"><button class="icon-button dialog-close" id="dismiss-notice" aria-label="Close message"><svg><use href="#i-close"/></svg></button><img src="assets/lizard.png" alt="" width="85" height="85"><div class="dialog-heading"><h2 id="notice-title"></h2><button class="speaker" data-read="notice" aria-label="Hear this message and Got it"><svg><use href="#i-speaker"/></svg></button></div><p id="notice-copy"></p><p id="voice-status" role="status" hidden></p><button class="primary" id="close-notice">Got it <svg><use href="#i-arrow"/></svg></button></dialog>
+</body>
+</html>

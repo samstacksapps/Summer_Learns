@@ -1,0 +1,6 @@
+{
+  "deferredAudioSkills": ["english-pp-initial-sounds", "english-pp-blend-three-sounds"],
+  "reason": "Pure phoneme audio must be listened to and approved before assessing it. Computer voices may say letter names or merge sounds.",
+  "maxSessionMinutes": 12,
+  "followupDays": 28
+}

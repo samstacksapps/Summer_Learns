@@ -1,0 +1,15 @@
+{
+  "speech": "gpt-4o-mini-tts-2025-12-15",
+  "transcription": "gpt-transcribe",
+  "voice": "coral",
+  "speechFormat": "mp3",
+  "checkedOn": "2026-10-06",
+  "sources": [
+    "https://github.com/openai/openai-node/blob/master/src/resources/audio/speech.ts",
+    "https://github.com/openai/openai-node/blob/master/src/resources/audio/transcriptions.ts",
+    "https://developers.openai.com/api/docs/guides/text-to-speech",
+    "https://developers.openai.com/api/docs/guides/speech-to-text",
+    "https://platform.openai.com/docs/guides/your-data"
+  ],
+  "note": "Current official audio guides and endpoint retention table checked. Model access verified against the configured OpenAI project; voice and transcript functional checks are tracked separately."
+}
