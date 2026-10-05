@@ -2,39 +2,48 @@ import 'server-only';
 import models from './config/models.json';
 import {randomUUID} from 'node:crypto';
 import type {SupabaseClient} from '@supabase/supabase-js';
+import {AudioCache} from './audio-cache';
 export const voiceConfig=models;
 export const lines:Record<string,string>={
- hello:'Hi, Summer! I’m your computer voice. A little gecko told me you’re ready for a warm-up challenge. Small steps. Let’s give it a gecko!',
- start:'Let’s try a few little questions. There is no rush. You can stop whenever you need a break.',
- maths:'A little maths. Have a listen, then type your answer.',
- english:'A little word magic. Have a listen, then type or tap your answer.',
- reading:'Read the little story aloud. Mum can help you start the microphone. We will save it so Mum can listen later.',
+ hello:'Hi, Summer. I’m your computer voice. Let’s find your starting point.',
+ start:'Try a few questions. There’s no rush. You can stop for a break.',
+ maths:'Maths. Have a listen, then type your answer.',
+ english:'English. Have a listen, then type or tap your answer.',
+ reading:'Read the passage aloud. Mum can help with the microphone. Your reading will be saved so Mum can listen later.',
  spelling:'Listen to the word and its sentence. Then type the word. You can listen again.',
- good:'You gave that a go. Nice effort. Let’s try the next one.',
+ good:'Answer saved. Nice work.',
  skip:'Thanks for telling me. We can try that another time.',
- try:'That one needs another little go. We can practise it later. Here comes a different one.',
- rush:'Whoa, speedy! Let’s read that one again together. We’ll check it another time.',
- hint:'Take your time. Think about the first little step. Mum can help you work it through. This answer will be marked as helped.',
- break:'Time for a silly brain break. Do your best goanna walk. When you’re ready, we can stop or keep going.',
- finish:'You did some good trying today! Here’s a joke. What do you call a lizard that sings? A rap-tile! See you for another little go.',
- win:'One last little win. Can you tap your friendly gecko? There it is! Thanks for giving it a go.',
- stop:'Good stopping. Your little tries are saved. We can come back when you are ready.',
- recording:'Tap the microphone, then read the little story. Tap stop when you’re done.',
- replay:'You can tap the speaker to hear those words again.',
- home:'Hi, Summer! Small steps. Lots of little wins. Tap Let’s go when you are ready.',
- menu:'Home. Learn. Beat My Score. Me.'
+ try:'We can practise that one later.',
+ rush:'Take your time. Let’s check that one again.',
+ hint:'Take your time. Think about the first step. Mum can help.',
+ break:'Time for a movement break. Try a goanna walk, then come back when you’re ready.',
+ finish:'You kept going and gave it a try. We’ll build from here.',
+ win:'Session done. Nice work. Your answers are saved.',
+ stop:'Your answers are saved. We can come back when you’re ready.',
+ recording:'Tap the microphone and read the passage. Tap stop when you’re done.',
+ replay:'Tap the speaker to hear the words again.',
+ home:'Hi, Summer. Take your time. Choose your warm-up when you’re ready.',
+ menu:'Home. Learn. Progress. Me.'
 };
+// Only these fixed, non-personal instructions are shared between authenticated requests.
+// Question audio stays in the current browser's volatile cache; no recordings are cached here.
+const fixedAudio=new AudioCache<ArrayBuffer>({maxEntries:24,maxBytes:8*1024*1024,sizeOf:audio=>audio.byteLength,ttlMs:6*60*60*1000});
 export async function reserveVoice(db:SupabaseClient,kind:'tts'|'transcription',cents:number){
  const {data,error}=await db.rpc('reserve_voice_spend',{p_kind:kind,p_amount_cents:cents,p_request_id:randomUUID(),p_monthly_limit_cents:1500});
  if(error)throw new Error('VOICE_BUDGET_UNAVAILABLE');
  if(data!==true)throw new Error('BUDGET_LIMIT');
 }
-export async function speech(db:SupabaseClient,input:string){
+export async function speech(db:SupabaseClient,input:string,cacheFixedLine=false){
  if(!process.env.SUMMER_OPENAI_KEY)throw new Error('VOICE_NOT_CONFIGURED');
+ const generate=async()=>{
  // A deliberately generous reservation, not the OpenAI invoice. Fails closed if the cap cannot be reserved.
  await reserveVoice(db,'tts',Math.max(2,Math.ceil(input.length/150)));
- const response=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{Authorization:`Bearer ${process.env.SUMMER_OPENAI_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:models.speech,voice:models.voice,input,response_format:models.speechFormat,instructions:'Warm, clear Australian English. Speak slowly for a child learning to read. Short gentle pauses. Do not add words.',speed:0.9}),signal:AbortSignal.timeout(30000)});
+ const response=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{Authorization:`Bearer ${process.env.SUMMER_OPENAI_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:models.speech,voice:models.voice,input,response_format:models.speechFormat,instructions:models.speechInstructions,speed:models.speechSpeed}),signal:AbortSignal.timeout(30000)});
  if(!response.ok){let code='';try{const detail=await response.json();code=String(detail.error?.code||'');}catch{}if(['credit_balance_exhausted','insufficient_quota'].includes(code))throw new Error('OPENAI_QUOTA');if(response.status===429)throw new Error('OPENAI_RATE_LIMIT');throw new Error('VOICE_FAILED');}
- return response.arrayBuffer();
+ const audio=await response.arrayBuffer();
+ if(!audio.byteLength)throw new Error('VOICE_FAILED');
+ return audio;
+ };
+ return cacheFixedLine?fixedAudio.get(`${models.voiceRevision}:${input}`,generate):generate();
 }
 export {estimateReading} from './reading-score';

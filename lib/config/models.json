@@ -1,7 +1,10 @@
 {
   "speech": "gpt-4o-mini-tts-2025-12-15",
   "transcription": "gpt-transcribe",
-  "voice": "coral",
+  "voice": "marin",
+  "voiceRevision": "au-marin-normal-v2",
+  "speechSpeed": 1.0,
+  "speechInstructions": "Speak with a consistent, natural General Australian English accent, as a friendly primary-school tutor in Perth. Use Australian vowels and non-rhotic pronunciation. Speak at a natural conversational pace with clear articulation and brief pauses at punctuation. Do not stretch words or use exaggerated sing-song delivery. Read exactly the supplied words; do not add or change them.",
   "speechFormat": "mp3",
   "checkedOn": "2026-10-06",
   "sources": [
