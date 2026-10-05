@@ -24,8 +24,8 @@ export async function POST(request:Request){try{
   const {data,error}=await db.from('profiles').select('parent_pin_hash,parent_pin_locked_until').eq('owner_id',user.id).single();if(error||!data)throw new Error('DATABASE_NOT_READY');
   if(data.parent_pin_locked_until&&Date.parse(data.parent_pin_locked_until)>Date.now())return json({error:'Too many PIN tries. Please wait ten minutes.'},429);
   if(body.action==='setPin'){
-   if(data.parent_pin_hash)return json({error:'A parent PIN is already set.'},409);
-   const hash=hashPin(body.pin);const {error}=await db.from('profiles').update({parent_pin_hash:hash}).eq('owner_id',user.id).is('parent_pin_hash',null);if(error)throw new Error('SAVE_FAILED');await unlockParent(user.id,hash);
+   if(data.parent_pin_hash)return json({error:'A parent PIN is already set.',code:'pin_already_set'},409);
+   const hash=hashPin(body.pin);const {data:updated,error}=await db.from('profiles').update({parent_pin_hash:hash}).eq('owner_id',user.id).is('parent_pin_hash',null).select('parent_pin_hash').maybeSingle();if(error)throw new Error('SAVE_FAILED');if(!updated)return json({error:'A parent PIN was just saved. Refresh and unlock with that PIN.',code:'pin_already_set'},409);await unlockParent(user.id,updated.parent_pin_hash);
   }else{
    if(!data.parent_pin_hash||!matchesPin(body.pin,data.parent_pin_hash)){const {error}=await db.rpc('record_pin_failure');if(error)throw new Error('PIN_RATE_LIMIT_UNAVAILABLE');return json({error:'Please check your PIN.'},403);}
    const {error}=await db.from('profiles').update({parent_pin_failures:0,parent_pin_locked_until:null}).eq('owner_id',user.id);if(error)throw new Error('SAVE_FAILED');await unlockParent(user.id,data.parent_pin_hash);

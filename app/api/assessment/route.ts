@@ -1,13 +1,15 @@
 import {family} from '@/lib/db';
 import {json,failure,sameOrigin,uuid} from '@/lib/http';
 import {history,schedule,nextQuestion,concludePart,questionPayload,type Part,type SessionRow} from '@/lib/progress';
+import {repairCompletedRun} from '@/lib/assessment-recovery';
 export async function POST(request:Request){try{
  sameOrigin(request);const {db,user}=await family();const body=await request.json();if(!['start','stop'].includes(body.action))return json({error:'Choose start or stop.'},400);let h=await history(db,user.id);
  if(body.action==='stop'&&!uuid(body.sessionId))return json({error:'Please return to the current session.'},400);
  if(body.action==='stop'&&uuid(body.sessionId)){
-  const session=h.sessions.find(s=>s.id===body.sessionId&&s.status==='in_progress');if(!session)return json({error:'This little session has already stopped.'},409);
-  const {error}=await db.from('assessment_sessions').update({status:'stopped',completed_at:new Date().toISOString()}).eq('id',session.id).eq('owner_id',user.id);
-  if(error)throw new Error('SAVE_FAILED');return json({stopped:true});
+  const session=h.sessions.find(s=>s.id===body.sessionId);if(!session)return json({error:'This little session is not available.'},409);
+  if(session.status!=='in_progress')return json({stopped:true,alreadyEnded:true});
+  const {data:updated,error}=await db.from('assessment_sessions').update({status:'stopped',completed_at:new Date().toISOString()}).eq('id',session.id).eq('owner_id',user.id).eq('status','in_progress').select('id').maybeSingle();
+  if(error)throw new Error('SAVE_FAILED');return json({stopped:true,...(!updated?{alreadyEnded:true}:{})});
  }
  if(!process.env.SUMMER_OPENAI_KEY)throw new Error('VOICE_NOT_CONFIGURED');
  // Curriculum topic draft must be verified before a child-facing assessment starts.
@@ -21,7 +23,7 @@ export async function POST(request:Request){try{
  if(!run)throw new Error('SAVE_FAILED');
  const finished=new Set(h.sessions.filter(s=>s.assessment_id===run.id&&s.status==='completed').map(s=>s.part));
  const part=(['maths','english','reading'] as Part[]).find(p=>!finished.has(p));
- if(!part)return json({sessionEnded:true,assessmentComplete:true});
+ if(!part){await repairCompletedRun(db,user.id,run,h);return json({sessionEnded:true,assessmentComplete:true,assessmentId:run.id});}
  let session=h.sessions.find(s=>s.assessment_id===run.id&&s.part===part&&s.status==='in_progress');
  if(!session){const {data,error}=await db.from('assessment_sessions').insert({assessment_id:run.id,owner_id:user.id,part}).select('*').single();if(error?.code==='23505'){const retry=await db.from('assessment_sessions').select('*').eq('assessment_id',run.id).eq('owner_id',user.id).eq('part',part).eq('status','in_progress').single();if(retry.error||!retry.data)throw new Error('SAVE_FAILED');session=retry.data as SessionRow;}else{if(error||!data)throw new Error('SAVE_FAILED');session=data as SessionRow;}}
  h=await history(db,user.id);const item=nextQuestion(run,session,h);

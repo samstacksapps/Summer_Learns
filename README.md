@@ -29,6 +29,8 @@ Copy `.env.example` to `.env.local` only if no existing local configuration need
 
 `npm run dev` and `npm start` use port3002. For a production smoke check after building, run `npm start`. Processes must restart in a new environment task. Source, dependencies and prepared outputs persist separately from running processes.
 
+In this managed cloud environment, also export `NODE_USE_ENV_PROXY=1` before starting Node.js24 so server requests use the supplied HTTPS proxy and CA trust. This cloud setting is separate from Vercel's server configuration. The saved **Configure setup instructions** fields already contain the installation and startup commands.
+
 ## Baseline and comparison
 
 - Up to three short parts: maths; spelling/listening understanding; reading aloud. Each session has a twelve-minute cap and may stop earlier.
@@ -42,7 +44,11 @@ Copy `.env.example` to `.env.local` only if no existing local configuration need
 
 ## Verification status
 
-All 31 automated assessment/content, audio-cache and presentation-progress checks, TypeScript and the production build passed. Schema ownership, immutable records, atomic reading saves, PIN limits and concurrent budget caps were exercised on disposable PostgreSQL17. Redesigned browser flows use mocked private API responses and a synthetic Chromium microphone; they verify controls and cancellation without saving real child data. These checks do not establish live end-to-end progress saving or iPhone behaviour. The latest Vercel deployment cannot be independently checked from this environment because its runtime network policy blocks the supplied hostname.
+All 41 automated assessment/content, audio-cache, presentation-progress and recovery checks and TypeScript pass. Saved answer/reading retries recover the current owned state without inserting a second attempt; a committed reading retry skips transcription and spending reservation. Assessment completion can recover after a transient final-status save failure. Parent sign-out clears local cookies even if remote revocation fails, and concurrent PIN setup switches to unlocking the stored PIN. Route recovery checks use isolated database/provider fixtures and do not write to the family account.
+
+The updated production build and redesigned browser flows pass. All14 checked screens had zero automated WCAG A/AA violations, no overflow at320/390/1280px and controls of at least44px. Schema ownership, immutable records, atomic reading saves, PIN limits and concurrent budget caps were exercised on disposable PostgreSQL17. Browser private routes are mocked and microphone capture uses a synthetic Chromium device; these checks do not establish live end-to-end progress saving or iPhone behaviour.
+
+The parent confirmed the production domain [summerlearns.vercel.app](https://summerlearns.vercel.app). Its live homepage and anonymous state route return200, the updated illustration layout is present, and the private parent route returns401. The earlier individual deployment link redirects independent checks to Vercel login; use the production domain on both devices.
 
 Current official OpenAI documentation was reviewed for model/request fields and endpoint retention. Speech requests may have abuse-monitoring logs retained for up to thirty days; the transcription endpoint lists no application-state or abuse-monitoring retention. Supabase backups have separate retention from the app’s thirty-day recording deletion and require project-specific review.
 

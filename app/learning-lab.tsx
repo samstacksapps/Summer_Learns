@@ -7,10 +7,10 @@ import {Bell,BookOpen,Check,GraduationCap,House,Lightbulb,Lock,Mic,Search,Slider
 import {ArrowCircle,Illustration,PageTitle,ProgressRing,ProgressTrack} from './ui/presentation';
 type Action={id:number;controller:AbortController};
 type Playback='played'|'cancelled';
-class ApiError extends Error {constructor(message:string,readonly status:number){super(message);}}
+class ApiError extends Error {constructor(message:string,readonly status:number,readonly code?:string,readonly signedOut=false){super(message);}}
 type Screen='welcome'|'home'|'lessons'|'question'|'break'|'win'|'parent'|'bests'|'me';
 type PublicItem={id:string;skillId:string;subject:'maths'|'english';kind:'number'|'choice'|'spelling'|'reading';yearLevel:number;prompt:string;choices?:string[];passage?:string};
-type Question={assessmentId:string;sessionId:string;part:string;kind:string;item?:PublicItem;sessionEnded:boolean;sessionDeadline?:string;assessmentComplete?:boolean;feedback?:string;brainBreak?:boolean;progress?:{answered:number;total:number};completion?:{part:Part;savedAnswers:number;independentAnswers:number;correct:number;strength?:string}};
+type Question={assessmentId:string;sessionId:string;part:string;kind:string;item?:PublicItem;sessionEnded:boolean;stopped?:boolean;sessionDeadline?:string;assessmentComplete?:boolean;feedback?:string;brainBreak?:boolean;progress?:{answered:number;total:number};completion?:{part:Part;savedAnswers:number;independentAnswers:number;correct:number;strength?:string}};
 type Part='maths'|'english'|'reading';
 type WarmupPart={part:Part;completed:boolean;available:boolean;answered:number;total:number};
 type Warmup={kind:'baseline'|'followup';completedParts:number;totalParts:3;percent:number;parts:WarmupPart[];activePart?:Part};
@@ -22,17 +22,17 @@ const feedback:Record<string,string>={good:'Answer saved. Nice work.',try:'We ca
 const BusyContext=createContext(false);
 const speakerIcon=<Volume2 size={23} strokeWidth={1.8} aria-hidden="true"/>;
 function Speaker({onClick,label='Hear this',disabled=false}:{onClick:()=>void;label?:string;disabled?:boolean}){const contextBusy=useContext(BusyContext);return <button type="button" className="speaker" aria-label={label} onClick={onClick} disabled={disabled||contextBusy}>{speakerIcon}</button>;}
-async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const response=await fetch(path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,cache:'no-store',signal});const result=await response.json();if(!response.ok)throw new ApiError(result.error||'Please try again with Mum.',response.status);return result as T;}
+async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const response=await fetch(path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,cache:'no-store',signal});const result=await response.json();if(!response.ok)throw new ApiError(result.error||'Please try again with Mum.',response.status,result.code,result.signedOut===true);return result as T;}
 const date=(value:string|null|undefined)=>value?new Date(value).toLocaleDateString('en-AU',{timeZone:'Australia/Perth',day:'numeric',month:'short',year:'numeric'}):'Not started';
 const level:Record<string,string>={unassessed:'Not checked yet',needs_practice:'Not yet',developing:'Getting there',provisional_strength:'Early strength — still checking',secure:'Secure'};
 // Reuse one audio element: iPhone audio is primed synchronously by a tap, before any network request.
-const silentWav='data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==';
+const silentWav='UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==';
 export default function LearningLab(){
  const [screen,setScreen]=useState<Screen>('welcome'),[state,setState]=useState<State|null>(null),[question,setQuestion]=useState<Question|null>(null),[answer,setAnswer]=useState(''),[assisted,setAssisted]=useState(false),[hint,setHint]=useState(false),[busy,setBusy]=useState(false),[gettingVoice,setGettingVoice]=useState(false),[error,setError]=useState(''),[caption,setCaption]=useState(''),[word,setWord]=useState(-1),[audioReady,setAudioReady]=useState(false),[report,setReport]=useState<Report|null>(null),[pin,setPin]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[recording,setRecording]=useState(false),[clip,setClip]=useState<Blob|null>(null),[recordingUrl,setRecordingUrl]=useState(''),[subject,setSubject]=useState('all');
  const [lessonSearch,setLessonSearch]=useState(''),[lessonSubject,setLessonSubject]=useState('all'),[lessonStatus,setLessonStatus]=useState('all'),[showFilters,setShowFilters]=useState(false);
  const lastPart=useRef<Part|null>(null);
  const parentUnlockedUntil=useRef(0);
- const audio=useRef<HTMLAudioElement|null>(null),audioUrl=useRef(''),readyAt=useRef(0),captionRef=useRef(''),media=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),recordStart=useRef(0),recordDuration=useRef(0),recordTimer=useRef<ReturnType<typeof setTimeout>|null>(null),activeOperation=useRef(0),audioDone=useRef<((result:Playback)=>void)|null>(null),heading=useRef<HTMLHeadingElement|null>(null);
+ const audio=useRef<HTMLAudioElement|null>(null),audioUrl=useRef(''),audioPrime=useRef(''),readyAt=useRef(0),captionRef=useRef(''),media=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),recordStart=useRef(0),recordDuration=useRef(0),recordTimer=useRef<ReturnType<typeof setTimeout>|null>(null),activeOperation=useRef(0),audioDone=useRef<((result:Playback)=>void)|null>(null),heading=useRef<HTMLHeadingElement|null>(null);
  const mounted=useRef(true),actionSequence=useRef(0),activeAction=useRef<Action|null>(null),refreshSequence=useRef(0),voiceLoads=useRef(new Set<AbortController>()),voiceGeneration=useRef(0),prefetchedHome=useRef(false);
  const cache=useRef(new AudioCache<Blob>({maxEntries:48,maxBytes:8*1024*1024,sizeOf:blob=>blob.size}));
  const voiceRevision=models.voiceRevision;
@@ -50,6 +50,7 @@ export default function LearningLab(){
  function clearPrivateAudio(){
   cancelWork();cache.current.clear();prefetchedHome.current=false;
   if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);audioUrl.current='';
+  if(audioPrime.current)URL.revokeObjectURL(audioPrime.current);audioPrime.current='';
   audio.current?.removeAttribute('src');if(mounted.current)setAudioReady(false);
  }
  function startAction():Action{
@@ -60,7 +61,7 @@ export default function LearningLab(){
  function finishAction(action:Action){if(current(action)){activeAction.current=null;setBusy(false);}}
  function actionError(error:unknown,action?:Action){
   if(!mounted.current||(action&&!current(action))||(error instanceof Error&&error.name==='AbortError'))return;
-  if(error instanceof ApiError&&error.status===401){clearPrivateAudio();setState(previous=>previous?{...previous,signedIn:false}:previous);setReport(null);setScreen('parent');}
+  if(error instanceof ApiError&&error.status===401){clearPrivateAudio();clearAccountView();}
   if(error instanceof ApiError&&error.status===403)setReport(null);
   setError(error instanceof Error?error.message:'Please try again with Mum.');
  }
@@ -104,7 +105,14 @@ export default function LearningLab(){
   prefetchedHome.current=true;
   void loadAudio('home').catch(error=>{if(error instanceof ApiError&&error.status===401&&mounted.current){clearPrivateAudio();setState(previous=>previous?{...previous,signedIn:false}:previous);}});
  },[screen,busy,state?.signedIn,state?.hasPin,state?.voiceConfigured]);
- function prime(){const element=audio.current;if(element){element.src=silentWav;void element.play().catch(()=>{});}}
+ function prime():Promise<void>{
+  const element=audio.current;if(!element)return Promise.resolve();
+  if(!audioPrime.current)audioPrime.current=URL.createObjectURL(new Blob([Uint8Array.from(atob(silentWav),character=>character.charCodeAt(0))],{type:'audio/wav'}));
+  element.src=audioPrime.current;
+  // Let tap-initiated playback start before say() pauses it. Blob audio also
+  // follows the same media policy as the voice and saved reading clips.
+  return element.play().then(()=>{},()=>{});
+ }
  async function say(line:string,text:string,action:Action,q=question):Promise<Playback>{
   if(!current(action))return 'cancelled';stopAudio();const operation=activeOperation.current;
   setCaption(text);captionRef.current=text;setWord(-1);if(line==='item')setAudioReady(false);setGettingVoice(true);
@@ -130,18 +138,20 @@ export default function LearningLab(){
    void element.play().catch(()=>done('cancelled',new Error('Tap the speaker to start the sound.')));
   });
  }
- async function replay(line:string,text:string){const action=startAction();prime();try{await say(line,text,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
+ async function replay(line:string,text:string){const action=startAction(),primed=prime();try{await primed;await say(line,text,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
  function words(text:string){return text.split(/\s+/).map((token,index)=><span key={index} className={index===word&&caption===text?'spoken-word':''}>{token} </span>);}
  async function showQuestion(q:Question,action:Action){
   if(!current(action))return;setQuestion(q);readyAt.current=0;setAnswer('');setHint(false);setAssisted(false);setClip(null);setRecordingUrl('');setError('');
+  if(q.stopped){setQuestion(null);setAudioReady(false);setScreen('home');setCaption('Your answers are saved. Come back when you’re ready.');void refresh(action);return;}
   if(q.part==='maths'||q.part==='english'||q.part==='reading')lastPart.current=q.part;
   if(q.sessionEnded){setScreen('win');await say('win','Session done. Nice work. Your answers are saved.',action,q);if(current(action))void refresh(action);return;}
   setScreen('question');setAudioReady(false);
   if(q.item)await say('item',q.item.kind==='spelling'?'Listen to the word and its sentence. Then type the word.':q.item.prompt,action,q);
  }
  async function begin(){
-  const action=startAction();prime();
+  const action=startAction(),primed=prime();
   try{
+   await primed;if(!current(action))return;
    if(!state?.signedIn||!state.hasPin){setScreen('parent');return;}
    if(!state.curriculumVerified){setScreen('parent');setError('The SCSA curriculum sources still need verification before Summer starts.');return;}
    if(await say('hello','Hi, Summer. I’m your computer voice. Let’s find your starting point.',action)!=='played'||!current(action))return;
@@ -153,7 +163,7 @@ export default function LearningLab(){
   const action=startAction();
   try{
    const q=await request<Question>('/api/answer',{sessionId:question.sessionId,itemId:question.item.id,answer:skip?'':answer,responseMs:Math.round(performance.now()-readyAt.current),assisted},action.controller.signal);
-   if(!current(action))return;setQuestion(q);setAnswer('');setHint(false);setAssisted(false);setAudioReady(false);
+   if(!current(action))return;if(q.stopped){await showQuestion(q,action);return;}setQuestion(q);setAnswer('');setHint(false);setAssisted(false);setAudioReady(false);
    try{await say(q.feedback||'good',feedback[q.feedback||'good'],action);}catch(error){if(error instanceof ApiError&&error.status===401)throw error;/* Saved answers still advance if feedback fails. */}
    if(!current(action))return;
    if(q.brainBreak&&!q.sessionEnded){setScreen('break');await say('break','Time for a movement break. Try a goanna walk, then come back when you’re ready.',action);}else await showQuestion(q,action);
@@ -167,10 +177,10 @@ export default function LearningLab(){
   catch(error){if(!(error instanceof ApiError&&error.status===409))actionError(error,action);}finally{finishAction(action);}
  }
  async function hintPlease(){setHint(true);setAssisted(true);await replay('hint','Take your time. Think about the first step. Mum can help.');}
- async function continueAfterBreak(){if(!question)return;const action=startAction();prime();try{await showQuestion(question,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
- async function finishWin(){const action=startAction();prime();try{await say('finish','You kept going and gave it a try. We’ll build from here.',action);}catch(error){actionError(error,action);}finally{if(current(action)){setQuestion(null);setScreen('home');void refresh(action);}finishAction(action);}}
+ async function continueAfterBreak(){if(!question)return;const action=startAction(),primed=prime();try{await primed;await showQuestion(question,action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
+ async function finishWin(){const action=startAction(),primed=prime();try{await primed;await say('finish','You kept going and gave it a try. We’ll build from here.',action);}catch(error){actionError(error,action);}finally{if(current(action)){setQuestion(null);setScreen('home');void refresh(action);}finishAction(action);}}
  async function startRecording(){
-  const action=startAction();prime();setClip(null);setRecordingUrl('');
+  const action=startAction();void prime();setClip(null);setRecordingUrl('');
   try{
    if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined')throw new Error('Ask Mum to open this app in Safari or Chrome using its secure web address.');
    const tracks=await navigator.mediaDevices.getUserMedia({audio:true});if(!current(action)){tracks.getTracks().forEach(track=>track.stop());return;}stream.current=tracks;
@@ -186,16 +196,17 @@ export default function LearningLab(){
   try{
    const form=new FormData();form.set('audio',clip,'reading');form.set('sessionId',question.sessionId);form.set('itemId',question.item.id);form.set('durationMs',String(Math.round(recordDuration.current)));form.set('assisted',String(assisted));
    const response=await fetch('/api/reading',{method:'POST',body:form,signal:action.controller.signal}),q=await response.json();if(!response.ok)throw new ApiError(q.error,response.status);
-   if(!current(action))return;setQuestion(q);setClip(null);setRecordingUrl('');setAudioReady(false);
+   if(!current(action))return;if(q.stopped){await showQuestion(q,action);return;}setQuestion(q);setClip(null);setRecordingUrl('');setAudioReady(false);
    try{await say('good','Reading saved. Mum can listen later.',action);}catch(error){if(error instanceof ApiError&&error.status===401)throw error;/* Saved reading still advances if feedback fails. */}
    if(current(action))await showQuestion(q,action);
   }catch(error){actionError(error,action);}finally{finishAction(action);}
  }
  async function signIn(event:FormEvent){event.preventDefault();const action=startAction();try{await request('/api/auth',{email,password},action.controller.signal);if(!current(action))return;setPassword('');await refresh(action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
- async function unlock(event:FormEvent){event.preventDefault();const action=startAction(),until=Date.now()+10*60*1000;try{await request('/api/parent',{action:state?.hasPin?'unlock':'setPin',pin},action.controller.signal);if(!current(action))return;parentUnlockedUntil.current=until;setPin('');await refresh(action);if(!current(action))return;const next=await request<Report>('/api/parent',undefined,action.controller.signal);if(current(action))setReport(next);}catch(error){actionError(error,action);}finally{finishAction(action);}}
- async function listenRecording(id:string){const action=startAction();prime();try{const response=await fetch(`/api/parent?recording=${id}`,{signal:action.controller.signal});if(!response.ok)throw new ApiError('Unlock the parent area again, or check whether this recording has expired.',response.status);const blob=await response.blob();if(!current(action))return;if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);audioUrl.current=URL.createObjectURL(blob);if(audio.current){audio.current.src=audioUrl.current;await audio.current.play();}}catch(error){actionError(error,action);}finally{finishAction(action);}}
+ async function unlock(event:FormEvent){event.preventDefault();const action=startAction(),until=Date.now()+10*60*1000;try{await request('/api/parent',{action:state?.hasPin?'unlock':'setPin',pin},action.controller.signal);if(!current(action))return;parentUnlockedUntil.current=until;setPin('');await refresh(action);if(!current(action))return;const next=await request<Report>('/api/parent',undefined,action.controller.signal);if(current(action))setReport(next);}catch(error){if(current(action)&&error instanceof ApiError&&error.code==='pin_already_set'){setPin('');setState(previous=>previous?{...previous,hasPin:true}:previous);await refresh(action);}actionError(error,action);}finally{finishAction(action);}}
+ async function listenRecording(id:string){const action=startAction(),primed=prime();try{await primed;if(!current(action))return;const response=await fetch(`/api/parent?recording=${id}`,{signal:action.controller.signal});if(!response.ok)throw new ApiError('Unlock the parent area again, or check whether this recording has expired.',response.status);const blob=await response.blob();if(!current(action))return;if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);audioUrl.current=URL.createObjectURL(blob);if(audio.current){audio.current.src=audioUrl.current;await audio.current.play();}}catch(error){actionError(error,action);}finally{finishAction(action);}}
  async function correctRecording(event:FormEvent<HTMLFormElement>,id:string){event.preventDefault();const form=new FormData(event.currentTarget),action=startAction();try{await request('/api/parent',{action:'correctReading',recordingId:id,accuracy:Number(form.get('accuracy'))},action.controller.signal);if(!current(action))return;const next=await request<Report>('/api/parent',undefined,action.controller.signal);if(current(action))setReport(next);}catch(error){actionError(error,action);}finally{finishAction(action);}}
- async function signOut(){clearPrivateAudio();const action=startAction();try{await request('/api/auth',{action:'signout'},action.controller.signal);if(!current(action))return;setReport(null);await refresh(action);}catch(error){actionError(error,action);}finally{finishAction(action);}}
+ function clearAccountView(){refreshSequence.current++;parentUnlockedUntil.current=0;setState(previous=>previous?{...previous,signedIn:false}:previous);setReport(null);setQuestion(null);setPin('');setPassword('');setAnswer('');setClip(null);setRecordingUrl('');setCaption('');setScreen('parent');}
+ async function signOut(){clearPrivateAudio();const action=startAction();try{await request('/api/auth',{action:'signout'},action.controller.signal);if(current(action))clearAccountView();}catch(error){if(current(action)&&error instanceof ApiError&&error.signedOut)clearAccountView();actionError(error,action);}finally{finishAction(action);}}
  async function go(next:Screen){if(question?.sessionId&&['question','break'].includes(screen)&&next!=='parent'){setError('Tap Stop for today first. Your answers will be saved.');return;}cancelWork();setReport(null);setError('');setScreen(next);}
  const item=question?.item;
  const parts:WarmupPart[]=state?.warmup?.parts??[
