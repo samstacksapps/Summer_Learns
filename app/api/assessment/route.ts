@@ -19,7 +19,7 @@ export async function POST(request:Request){try{
  const kind=baseline?'followup':'baseline';
  if(kind==='followup'&&!schedule(h).isDue)return json({error:'The next warm-up will be offered after four weeks of learning. No need to rush.'},409);
  let run=h.runs.find(r=>r.kind===kind&&r.status==='in_progress');
- if(!run){const {data,error}=await db.from('assessments').insert({owner_id:user.id,kind}).select('*').single();if(error?.code==='23505'){const retry=await db.from('assessments').select('*').eq('owner_id',user.id).eq('kind',kind).eq('status','in_progress').single();if(retry.error||!retry.data)throw new Error('SAVE_FAILED');run=retry.data;}else{if(error||!data)throw new Error('SAVE_FAILED');run=data;}}
+ if(!run){const {data,error}=await db.from('assessments').insert({owner_id:user.id,kind}).select('*').single();if(error?.code==='23505'){const latest=await history(db,user.id);run=latest.runs.find(r=>r.kind===kind&&r.status==='in_progress');if(!run)throw new Error('SAVE_FAILED');}else{if(error||!data)throw new Error('SAVE_FAILED');run=data;}}
  if(!run)throw new Error('SAVE_FAILED');
  const finished=new Set(h.sessions.filter(s=>s.assessment_id===run.id&&s.status==='completed').map(s=>s.part));
  const part=(['maths','english','reading'] as Part[]).find(p=>!finished.has(p));

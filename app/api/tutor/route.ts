@@ -14,7 +14,7 @@ function dbFailure(error:DbError):never{
  if(error.code==='23514')throw new Error('TUTOR_STALE');
  throw new Error('TUTOR_SAVE_FAILED');
 }
-async function ownedSession(db:SupabaseClient,owner:string,id:string){const {data,error}=await db.from('learning_sessions').select('id,subject,status,revision,plan,tutor_state').eq('owner_id',owner).eq('id',id).maybeSingle();if(error)dbFailure(error);if(!data)throw new Error('TUTOR_STALE');if(!validTutorPlan(data.plan)||!validTutorState(data.tutor_state))throw new Error('TUTOR_STATE_INVALID');return data as Session;}
+async function ownedSession(db:SupabaseClient,owner:string,id:string){const {data,error}=await db.from('learning_sessions').select('*').eq('owner_id',owner).eq('id',id).maybeSingle();if(error)dbFailure(error);if(!data||data.is_archived)throw new Error('TUTOR_STALE');if(!validTutorPlan(data.plan)||!validTutorState(data.tutor_state))throw new Error('TUTOR_STATE_INVALID');return data as Session;}
 function payload(session:Session,state:TutorState,message:string,revision=session.revision):TutorPayload{
  const item=session.status==='stopped'?null:tutorQuestion(session.plan,state);
  return {sessionId:session.id,revision,subject:session.subject,item:item?publicTutorItem(item):null,message,progress:{answered:state.index,total:5,correct:state.correct},complete:state.index===5,...(session.status==='stopped'?{stopped:true as const}:{}),observations:state.observations.map(code=>observationLabels[code])};
@@ -49,7 +49,7 @@ export async function POST(request:Request){
   if(action==='message'&&body.itemId!==undefined&&(typeof body.itemId!=='string'||body.itemId.length>160))return json({error:'Please return to the current question.'},400);
   let session:Session;
   if(action==='start'){
-   const baseline=await db.from('assessments').select('id').eq('owner_id',user.id).eq('kind','baseline').eq('status','completed').limit(1).maybeSingle();if(baseline.error)dbFailure(baseline.error);if(!baseline.data)throw new Error('BASELINE_REQUIRED');
+   const baseline=await db.from('assessments').select('*').eq('owner_id',user.id).eq('kind','baseline').eq('status','completed');if(baseline.error)dbFailure(baseline.error);if(!baseline.data?.some(r=>!r.is_archived))throw new Error('BASELINE_REQUIRED');
    const prior=await db.from('tutor_turns').select('session_id').eq('owner_id',user.id).eq('request_id',requestId).maybeSingle();if(prior.error)dbFailure(prior.error);
    if(prior.data)session=await ownedSession(db,user.id,prior.data.session_id);
    else{
@@ -89,8 +89,8 @@ export async function POST(request:Request){
   if(action==='stop')replyMessage='You can come back to another lesson when you are ready.';
   else if(action==='finish')replyMessage='Lesson done. Your learning progress is saved.';
   else{
-   const memories=await db.from('learning_sessions').select('tutor_state').eq('owner_id',user.id).eq('status','completed').order('started_at',{ascending:false}).limit(8);if(memories.error)dbFailure(memories.error);
-   const previousObservations=[...new Set((memories.data??[]).flatMap(row=>validTutorState(row.tutor_state)?row.tutor_state.observations:[]))].slice(0,8) as ObservationCode[];
+   const memories=await db.from('learning_sessions').select('*').eq('owner_id',user.id).eq('status','completed').order('started_at',{ascending:false}).limit(8);if(memories.error)dbFailure(memories.error);
+   const previousObservations=[...new Set((memories.data??[]).filter(row=>!row.is_archived).flatMap(row=>validTutorState(row.tutor_state)?row.tutor_state.observations:[]))].slice(0,8) as ObservationCode[];
    const reply=await tutorReply({action,subject:session.subject,state,item:replyItem,alreadyAnswered:alreadyAnswered||action==='respond',correct:attempt?.correct as boolean|undefined??previousCorrect,answer:body.answer as string|undefined,explanation:body.explanation as string|undefined,message:body.message as string|undefined,conversation,previousObservations},request.signal);
    state={...state,observations:[...new Set([...state.observations,...reply.observations])].slice(0,8)};replyMessage=reply.message;
   }

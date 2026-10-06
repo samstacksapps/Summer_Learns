@@ -9,6 +9,7 @@ export async function GET(){
  try{const {db,user}=await family();const h=await history(db,user.id);const {data,error}=await db.from('profiles').select('parent_pin_hash').eq('owner_id',user.id).single();if(error)throw new Error('DATABASE_NOT_READY');
  const timing=schedule(h);
  const learning=await learningProgress(db,user.id);
- return json({configured:true,signedIn:true,hasPin:Boolean(data?.parent_pin_hash),voiceConfigured:Boolean(process.env.SUMMER_OPENAI_KEY),curriculumVerified,baselineComplete:h.runs.some(r=>r.kind==='baseline'&&r.status==='completed'),baselineStarted:h.runs.some(r=>r.kind==='baseline'),schedule:timing,warmup:warmupProgress(h,timing.isDue),tutorReady:learning.ready,learning:{completedSessions:learning.completedSessions,answers:learning.answers,correct:learning.correct}});
+ const resetProbe=await db.from('assessments').select('is_archived').eq('owner_id',user.id).limit(1);
+ return json({configured:true,signedIn:true,hasPin:Boolean(data?.parent_pin_hash),voiceConfigured:Boolean(process.env.SUMMER_OPENAI_KEY),curriculumVerified,baselineComplete:h.runs.some(r=>r.kind==='baseline'&&r.status==='completed'),baselineStarted:h.runs.some(r=>r.kind==='baseline'),schedule:timing,warmup:warmupProgress(h,timing.isDue),tutorReady:learning.ready,resetReady:!resetProbe.error,learning:{completedSessions:learning.completedSessions,answers:learning.answers,correct:learning.correct}});
  }catch(error){if(error instanceof Error&&error.message==='SIGN_IN_REQUIRED')return json({configured:true,signedIn:false,voiceConfigured:Boolean(process.env.SUMMER_OPENAI_KEY),curriculumVerified});return failure(error);}
 }

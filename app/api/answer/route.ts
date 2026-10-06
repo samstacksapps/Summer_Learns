@@ -19,6 +19,7 @@ export async function POST(request:Request){try{
  if(error){const recovered=await recoverSavedResponse(db,user.id,body.sessionId,body.itemId);if(recovered)return json(recovered);throw new Error('SAVE_FAILED');}
  const h=await history(db,user.id);
  if(h.sessions.find(s=>s.id===session.id)?.status!=='in_progress'||h.runs.find(r=>r.id===run.id)?.status!=='in_progress'){const recovered=await recoverSavedResponse(db,user.id,body.sessionId,body.itemId,h);if(recovered)return json(recovered);}
+ if(!h.runs.some(r=>r.id===run.id))return json({stopped:true,sessionEnded:true,assessmentId:run.id,sessionId:session.id});
  const next=nextQuestion(run,session,h);
  const feedback=attempt.correct===null?'skip':attempt.likelyGuess?'rush':attempt.correct?'good':'try';
  if(!next)return json({...await concludePart(db,user.id,run,session),feedback});

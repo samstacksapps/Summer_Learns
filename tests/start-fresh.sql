@@ -1,0 +1,31 @@
+-- Disposable PostgreSQL only, after the base schema and both migrations.
+begin;
+create function pg_temp.check_ok(ok boolean,label text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception 'FAIL: %',label; end if; raise notice 'PASS: %',label; end;$$;
+insert into auth.users(id,email) values('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa','reset-fixture@example.invalid'),('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb','other-fixture@example.invalid');
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',true);
+insert into public.assessments(id,owner_id,kind) values('11111111-1111-4111-8111-111111111111',auth.uid(),'baseline');
+insert into public.assessment_sessions(id,assessment_id,owner_id,part) values('22222222-2222-4222-8222-222222222222','11111111-1111-4111-8111-111111111111',auth.uid(),'maths');
+insert into public.attempts(assessment_id,session_id,owner_id,item_id,skill_id,correct,response_ms,year_level) values('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222',auth.uid(),'fixture-item','fixture-skill',true,5000,2);
+update public.assessments set status='completed',completed_at=now() where id='11111111-1111-4111-8111-111111111111';
+insert into public.learning_sessions(id,owner_id,status,completed_at) values('33333333-3333-4333-8333-333333333333',auth.uid(),'completed',now());
+insert into public.assessments(owner_id,kind) values('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb','baseline');
+create temp table original_marks as select * from public.attempts;
+create temp table original_baseline as select to_jsonb(a)-'is_archived' as record from public.assessments a where id='11111111-1111-4111-8111-111111111111';
+set local role authenticated;
+select pg_temp.check_ok(public.archive_learning_results('44444444-4444-4444-8444-444444444444')->>'archivedAssessments'='1','owned assessment archived');
+select pg_temp.check_ok((select is_archived from public.learning_sessions where id='33333333-3333-4333-8333-333333333333'),'daily progress archived');
+insert into public.assessments(owner_id,kind) values(auth.uid(),'baseline');
+select pg_temp.check_ok(public.archive_learning_results('44444444-4444-4444-8444-444444444444')->>'alreadyReset'='true','retry is idempotent');
+select pg_temp.check_ok((select count(*)=1 from public.assessments where not is_archived),'retry does not clear new results');
+do $$begin
+ begin update public.assessments set completed_at=completed_at+interval '1 second' where is_archived; raise exception 'FAIL: immutable baseline'; exception when check_violation then raise notice 'PASS: immutable archived baseline'; end;
+ begin update public.assessment_sessions set status='stopped' where id='22222222-2222-4222-8222-222222222222'; raise exception 'FAIL: stale assessment'; exception when check_violation then raise notice 'PASS: stale assessment write rejected'; end;
+ begin update public.learning_sessions set revision=revision+1 where is_archived; raise exception 'FAIL: stale lesson'; exception when insufficient_privilege or check_violation then raise notice 'PASS: stale lesson write rejected'; end;
+end;$$;
+reset role;
+select pg_temp.check_ok((select (to_jsonb(a)-'is_archived')=b.record from public.assessments a cross join original_baseline b where a.id='11111111-1111-4111-8111-111111111111'),'original baseline unchanged');
+select pg_temp.check_ok(not exists((select * from public.attempts except select * from original_marks) union all (select * from original_marks except select * from public.attempts)),'original marks unchanged');
+select pg_temp.check_ok((select not is_archived from public.assessments where owner_id='bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb'),'other family unaffected');
+select set_config('request.jwt.claim.sub','',true);
+do $$begin begin perform public.archive_learning_results('55555555-5555-4555-8555-555555555555');raise exception 'FAIL: anonymous reset';exception when insufficient_privilege then raise notice 'PASS: anonymous reset rejected';end;end;$$;
+rollback;
