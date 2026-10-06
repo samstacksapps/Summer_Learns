@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { BookOpen, Check, Lightbulb, Mic, Send, Square, Volume2, VolumeX } from 'lucide-react';
 import { ArrowCircle, Illustration, PageTitle, ProgressTrack } from '@/app/ui/presentation';
-import { cancelNative, getAustralianVoices, sayNative, subscribeAustralianVoices } from '@/lib/browser-voice';
+import {cancelNatural,playNatural,type VoiceSource} from '@/lib/natural-voice';
 import type { TutorPayload } from '@/lib/tutor-content';
 
 type Subject = 'maths' | 'english';
@@ -74,7 +74,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
 
   function cancelSpeech() {
     speakingSequence.current++;
-    cancelNative();
+    cancelNatural();
     if (mounted.current) setSpeaking(false);
   }
 
@@ -94,7 +94,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
 
   useEffect(() => {
     mounted.current = true;
-    const unsubscribe = subscribeAustralianVoices(voices => { if (mounted.current) setVoiceAvailable(voices.length > 0); });
+    setVoiceAvailable(true);const unsubscribe=()=>{};
     return () => {
       mounted.current = false;
       sequence.current++;
@@ -115,13 +115,14 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
     if (nextLesson) feedbackEnd.current?.scrollIntoView({ block: 'nearest', behavior });
   }, [bubbles.length]);
 
-  function speak(text: string) {
+  function speak(text: string, source?:VoiceSource) {
     cancelSpeech();
     if (!voiceOnRef.current || !text.trim()) return;
     const id = ++speakingSequence.current;
     setVoiceError('');
-    // Called directly in a tap when possible; the native voice avoids a second AI audio request.
-    void sayNative(text, () => { if (mounted.current && id === speakingSequence.current) setSpeaking(true); }).then(() => {
+    // Fixed introductions start in the tap; private replies use the owned saved tutor turn.
+    const chosen=source??(latest.current?{line:'tutor' as const,sessionId:latest.current.sessionId,revision:latest.current.revision,segment:'reply' as const}:{line:'hello' as const});
+    void playNatural(chosen, () => { if (mounted.current && id === speakingSequence.current) setSpeaking(true); }).then(() => {
       if (mounted.current && id === speakingSequence.current) setSpeaking(false);
     }).catch((failure: unknown) => {
       if (!mounted.current || id !== speakingSequence.current) return;
@@ -192,7 +193,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
         if (kind === 'respond' || kind === 'message' && nextLesson) setNextLesson(result);
         else setLesson(result);
       }
-      if (result.message) speak(result.message + (kind === 'start' && result.item ? ` ${result.item.passage ? `${result.item.passage} ` : ''}${result.item.prompt}` : ''));
+      if (result.message) speak(result.message,{line:'tutor',sessionId:result.sessionId,revision:result.revision,segment:kind==='start'?'both':'reply'});
     } catch (failure: unknown) {
       if (!mounted.current || id !== sequence.current) return;
       if (failure instanceof TutorRequestError && failure.status === 401) {
@@ -242,7 +243,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
 
   function start() {
     if (busyRef.current || failed.current) return;
-    if (voiceOnRef.current && getAustralianVoices().length) speak(intro);
+    if (voiceOnRef.current) speak(intro,{line:'start'});
     void runTurn({ action: 'start', subject, requestId: makeId() }, 'start');
   }
 
@@ -284,7 +285,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
       scrollConversation.current = false;
       setBubbles([]);
       conversation.current = [];
-      speak(`${nextLesson.item.passage ? `${nextLesson.item.passage} ` : ''}${nextLesson.item.prompt} ${invitation}`);
+      speak(nextLesson.item.prompt,{line:'tutor',sessionId:nextLesson.sessionId,revision:nextLesson.revision,segment:'question'});
       requestAnimationFrame(() => {
         questionHeading.current?.focus({ preventScroll: true });
         lessonRoot.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
@@ -424,7 +425,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
   const activeSubject = lesson?.subject || subject;
 
   const errorPanel = error ? <div className="error-message tutor-error" role="alert"><p>{error}</p>{errorCode === 'tutor_setup_required' && <p>Ask Mum to finish the tutor database setup. Your starting test is kept separately.</p>}{retryable && <button type="button" className="secondary" disabled={busy} onClick={retry}>Try the same turn again</button>}</div> : null;
-  const voiceNote = voiceError ? <p className="tutor-voice-note" role="status">{voiceError} <a href="/voice-check" target="_blank" rel="noreferrer">Check Australian voice</a></p> : !voiceAvailable && voiceOn ? <p className="tutor-voice-note">You can read every reply. <a href="/voice-check" target="_blank" rel="noreferrer">Set up Australian voice</a></p> : null;
+  const voiceNote = voiceError ? <p className="tutor-voice-note" role="status">{voiceError} <a href="/voice-check" target="_blank" rel="noreferrer">Choose AI tutor voice</a></p> : !voiceAvailable && voiceOn ? <p className="tutor-voice-note">You can read every reply. <a href="/voice-check" target="_blank" rel="noreferrer">Choose AI tutor voice</a></p> : null;
   const voiceButton = <button type="button" className="speaker" aria-label={voiceOn ? 'Turn tutor voice off' : 'Turn tutor voice on'} aria-pressed={voiceOn} disabled={recording || micPending} onClick={toggleVoice}>{voiceOn ? <Volume2 size={23} aria-hidden="true" /> : <VolumeX size={23} aria-hidden="true" />}</button>;
 
   if (!lesson) return <section ref={lessonRoot} className="tutor-lesson" aria-label={`${subjectTitle[subject]} tutoring`}>
@@ -467,7 +468,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
     {voiceNote}
     {item && <div className="tutor-layout">
       <div className="card tutor-question">
-        <div className="read-row"><span className="tutor-year">Year {item.yearLevel} · {subjectTitle[activeSubject]}</span><button type="button" className="speaker" aria-label="Hear the question" disabled={recording || micPending} onClick={() => speak(`${item.passage ? `${item.passage} ` : ''}${item.prompt}`)}><Volume2 size={23} aria-hidden="true" /></button></div>
+        <div className="read-row"><span className="tutor-year">Year {item.yearLevel} · {subjectTitle[activeSubject]}</span><button type="button" className="speaker" aria-label="Hear the question" disabled={recording || micPending} onClick={() => speak(item.prompt,{line:'tutor',sessionId:lesson!.sessionId,revision:lesson!.revision,segment:'question'})}><Volume2 size={23} aria-hidden="true" /></button></div>
         {item.passage && <p className="passage">{item.passage}</p>}
         <h2 ref={questionHeading} tabIndex={-1} id="tutor-question-heading">{item.prompt}</h2>
         <form className="tutor-answer-form" onSubmit={submitAnswer} aria-labelledby="tutor-question-heading">

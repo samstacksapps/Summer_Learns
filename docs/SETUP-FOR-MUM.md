@@ -11,11 +11,11 @@ Open [summerlearns.vercel.app](https://summerlearns.vercel.app/) in iPhone Safar
 
 This adds the lesson records. It keeps the account, starting-point results and recordings. Do not delete tables or create another project. If the copy button is unavailable, use `supabase/migrations/20261006_conversational_tutor.sql` in GitHub. If Run shows an error, share its text without keys or passwords.
 
-## Choose the Australian voice
+## Choose the tutor voice
 
-Open [Choose Australian voice](https://summerlearns.vercel.app/voice-check). Choose a voice and tap **Try this voice**. This is a harmless preview that does not start an assessment. The app uses the selected Australian voice on that device, rather than generating another sound file each time.
+Open [Choose tutor voice](https://summerlearns.vercel.app/voice-check). Listen to Coral, Nova and Shimmer, then tap **Use this voice** on your favourite. These are AI-generated previews, not Microsoft/device voices. The selected voice speaks the tutor’s actual replies and questions on that device. No extra key or database update is required for this voice change.
 
-If no Australian voice appears, on iPhone open Settings → Accessibility → Read & Speak (or Spoken Content) → Voices → English. Download an Australian voice and reopen the page. Check the accent and start-up speed on the actual phone. Each device keeps its own voice choice.
+Check the accent and playback on the actual phone. Instructions request an Australian accent, but your listening judgement determines whether the voice suits Summer. New conversational replies need generation; you can read the text while audio starts.
 
 ## Summer’s starting point and lessons
 

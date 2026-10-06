@@ -1,0 +1,308 @@
+{
+  "version": 1,
+  "revision": "natural-v1",
+  "configHash": "a543440d2b3b377702016782a5c79804f8a759602bf7b4219fd8e8e044f437b1",
+  "model": "gpt-4o-mini-tts-2025-12-15",
+  "entries": {
+    "coral-start.mp3": {
+      "hash": "aa22923263a4fe195971bee519e85e0f813b9deadb559bf24677e605faf3505a",
+      "bytes": 90624,
+      "durationMs": 5664
+    },
+    "coral-hello.mp3": {
+      "hash": "277b42e52d97ff72810ac6865dda44aba874a5275b96fd4333603dc6aee43203",
+      "bytes": 110592,
+      "durationMs": 6912
+    },
+    "coral-maths.mp3": {
+      "hash": "81fadaa39410e3672585904a1b3fa9aef89ddee7ce82f04a21963969cd7a9fb5",
+      "bytes": 69888,
+      "durationMs": 4368
+    },
+    "coral-spelling.mp3": {
+      "hash": "73e74e15aec73c1356af00aa352f7cb9a42f6d4521493188e8fdefd543dc5dea",
+      "bytes": 86400,
+      "durationMs": 5400
+    },
+    "coral-english.mp3": {
+      "hash": "30da87a3e8fa13f425e0f406268d4692804beae09cc22448b9be14dda1389c6e",
+      "bytes": 72192,
+      "durationMs": 4512
+    },
+    "coral-reading.mp3": {
+      "hash": "b9a10cc0bf465fc02f508048b529e1d98a962bd302533b4e8715db883a1cf8ae",
+      "bytes": 124800,
+      "durationMs": 7800
+    },
+    "coral-good.mp3": {
+      "hash": "0102210e1d7b27310976636ec556a5404fb0d71a8a0e4e443307dfbf9edde571",
+      "bytes": 38400,
+      "durationMs": 2400
+    },
+    "coral-skip.mp3": {
+      "hash": "b0c3c2716159ab8072b05a24979d9124d8769d107ba8f08bf82812379dc9437e",
+      "bytes": 84864,
+      "durationMs": 5304
+    },
+    "coral-try.mp3": {
+      "hash": "b6deb6878f592b684ccfb0c57aa7a99626c2a3c1969e4c8ccdfa198336088e5b",
+      "bytes": 51456,
+      "durationMs": 3216
+    },
+    "coral-rush.mp3": {
+      "hash": "e9d433d6cc41592e0599e60711d012f40cdffb24e88c0d25bc475292e7813cb7",
+      "bytes": 73728,
+      "durationMs": 4608
+    },
+    "coral-break.mp3": {
+      "hash": "49b3484523a0e5c68874d03cf6e7ee47f7401b26bef8c2530b0bb28786127138",
+      "bytes": 82560,
+      "durationMs": 5160
+    },
+    "coral-finish.mp3": {
+      "hash": "cb8713f712faf6de66115f34e6b3a0c7e120025af6004ab1b32ac8361828ad40",
+      "bytes": 80256,
+      "durationMs": 5016
+    },
+    "coral-hint.mp3": {
+      "hash": "ed7a7bda466a76c8202fa684cabd75d47b940d114a768b1ed1aee1534f858fd1",
+      "bytes": 90624,
+      "durationMs": 5664
+    },
+    "coral-win.mp3": {
+      "hash": "421d0c7b6e7605ccfe8d6664e3f5fa19026c94d3fc79d1449e7faf0c6a1a70c3",
+      "bytes": 73728,
+      "durationMs": 4608
+    },
+    "coral-recording.mp3": {
+      "hash": "6aa6f485936a6a4dbca6bcee804cf89cea118f6b70e77be848abe392c4b91c4f",
+      "bytes": 77568,
+      "durationMs": 4848
+    },
+    "coral-stop.mp3": {
+      "hash": "370e1cc02d054ff8f2169eaeed425f47773c398f9d15a9a28bc6725f41a1c9c2",
+      "bytes": 73728,
+      "durationMs": 4608
+    },
+    "coral-replay.mp3": {
+      "hash": "54b7a7e81317263b363cb241aca251c545701450fb2e6cc12b5e23b1c9558c85",
+      "bytes": 47232,
+      "durationMs": 2952
+    },
+    "coral-menu.mp3": {
+      "hash": "92e8a32551bc664b51a22efcd4a13f55f6ad8b2d8ae85f4f40f39d04778b707c",
+      "bytes": 65664,
+      "durationMs": 4104
+    },
+    "coral-home.mp3": {
+      "hash": "6e9cb29ccd1a18847d325af96d02c824a92cb1955b16c19f5a2bc388b2cdaca4",
+      "bytes": 84864,
+      "durationMs": 5304
+    },
+    "nova-hello.mp3": {
+      "hash": "4c7041ccba58dc16d71a4b1ec7e4e0d68388308027a559dbe562e3796f0692e5",
+      "bytes": 72960,
+      "durationMs": 4560
+    },
+    "nova-start.mp3": {
+      "hash": "ce0ae3a83bf46b7c5e249fdd99c3d8e253be99e11360209e1057fddac762eee7",
+      "bytes": 65664,
+      "durationMs": 4104
+    },
+    "coral-preview.mp3": {
+      "hash": "24131022f8dcd60a047144f00cbd7558853c0dcfbce52e04f10cc82038a08edb",
+      "bytes": 141696,
+      "durationMs": 8856
+    },
+    "nova-maths.mp3": {
+      "hash": "0f10afe6336ad970beefb5bb731ba310074bc9d2a5b32c45b887f9d9e0e37aa5",
+      "bytes": 48768,
+      "durationMs": 3048
+    },
+    "nova-english.mp3": {
+      "hash": "634fc8717dd00ad633baf47b43a7b892825ffb394821dd4ad0ae2b8569b567f9",
+      "bytes": 59520,
+      "durationMs": 3720
+    },
+    "nova-good.mp3": {
+      "hash": "2838369aa23490b30e1faecb0c51fc6c923460d008f6e920fac1c8a9e2b2dad8",
+      "bytes": 48768,
+      "durationMs": 3048
+    },
+    "nova-reading.mp3": {
+      "hash": "1e4ae197ffe99151944246efa066b31fa92b1f906a8c933a7d80e07434d4773a",
+      "bytes": 112896,
+      "durationMs": 7056
+    },
+    "nova-spelling.mp3": {
+      "hash": "ad77ac0c1f1a7734ea178b99a77382a8cb804aa91e2872545727fe8d51afc3f8",
+      "bytes": 81792,
+      "durationMs": 5112
+    },
+    "nova-try.mp3": {
+      "hash": "f91010ae3ed3c1382a2cc9147f87ff9571fff8539005ed59a3cfd119483a45d0",
+      "bytes": 52224,
+      "durationMs": 3264
+    },
+    "nova-skip.mp3": {
+      "hash": "21684e2c9a6dcf63123469daad93a4a53212302c567323a5ad3d67d00b16a980",
+      "bytes": 56064,
+      "durationMs": 3504
+    },
+    "nova-hint.mp3": {
+      "hash": "464eda63b073231c4f038f753a95cc17837a4a61f8681311c322d1180f1d0bb8",
+      "bytes": 65664,
+      "durationMs": 4104
+    },
+    "nova-rush.mp3": {
+      "hash": "9288011965b66407a89b5320e66a0ca06138bcd672389559c0126e0d592887ce",
+      "bytes": 47232,
+      "durationMs": 2952
+    },
+    "nova-break.mp3": {
+      "hash": "a32610b226399da2dc32f8fc800cbdde123b935a6f8c56972a2c405aa68db8a1",
+      "bytes": 92928,
+      "durationMs": 5808
+    },
+    "nova-win.mp3": {
+      "hash": "85e2b1cff3fc696e40d8195e3eadea486e71e8ebad56b1047a1a23505928508a",
+      "bytes": 57600,
+      "durationMs": 3600
+    },
+    "nova-finish.mp3": {
+      "hash": "336a687afa26e4736acdb23dd0eb1f94c3e5c8685658ea0d2e3e4ac0c922332d",
+      "bytes": 69120,
+      "durationMs": 4320
+    },
+    "nova-stop.mp3": {
+      "hash": "8529fa95a79555f51f707ddc98dcb5dff5752cec48cae870377e62e4645e8099",
+      "bytes": 56064,
+      "durationMs": 3504
+    },
+    "nova-replay.mp3": {
+      "hash": "2b404532112032f883db1dce84b211f6b00819a9157ef3fb3fbd5c49ee52334f",
+      "bytes": 41856,
+      "durationMs": 2616
+    },
+    "nova-recording.mp3": {
+      "hash": "88a3f85a58a3c81623cac82d4c46c1ab5e109eda21420026a5d8566d85123a18",
+      "bytes": 69120,
+      "durationMs": 4320
+    },
+    "nova-menu.mp3": {
+      "hash": "ae864a24f2d07c286c647d2f349841ca3b4d610d239d4722590a2e4cf093c8ba",
+      "bytes": 44160,
+      "durationMs": 2760
+    },
+    "nova-home.mp3": {
+      "hash": "4afe9026b3b75961400844cebe6796b1f6ad55a45b1fc6f9f85255c5a70ef18e",
+      "bytes": 76032,
+      "durationMs": 4752
+    },
+    "nova-preview.mp3": {
+      "hash": "f8bfb90bd97f36d5d001004fb2a0b33080d5da83d27e59048ce10f109c8198b3",
+      "bytes": 120192,
+      "durationMs": 7512
+    },
+    "shimmer-hello.mp3": {
+      "hash": "f2a813ba6ccfe7b446f1b37aa3a0eccddb1c2d955a5d6066c12f21ef4ed2f786",
+      "bytes": 80256,
+      "durationMs": 5016
+    },
+    "shimmer-start.mp3": {
+      "hash": "d272737c8b345f79efc167c0f2ec605bd4b0da7ed3e61fc9a2f82c35f859d5dd",
+      "bytes": 72960,
+      "durationMs": 4560
+    },
+    "shimmer-maths.mp3": {
+      "hash": "8017d2b60baddb71b0534f5be9e2c169a6e81677376cf8422d96f5fd3f6b31ba",
+      "bytes": 53760,
+      "durationMs": 3360
+    },
+    "shimmer-reading.mp3": {
+      "hash": "181bdc58313142f5665962f987d1088a8bcf74980dfe1f76d3ae8d58c5b11971",
+      "bytes": 120960,
+      "durationMs": 7560
+    },
+    "shimmer-spelling.mp3": {
+      "hash": "4e151ae97144107f6d91b5d9753097b0d5598cc06a61df09c23e30894ac60b04",
+      "bytes": 83328,
+      "durationMs": 5208
+    },
+    "shimmer-english.mp3": {
+      "hash": "5fe16d7d23354fed6496a197f35a8a94f4152d2d65b9782cb5b57ceb2df64456",
+      "bytes": 75264,
+      "durationMs": 4704
+    },
+    "shimmer-good.mp3": {
+      "hash": "5024c4d1f7251ebc244e2ca52fa4b307f04232feacdd78a0712c286009a24d0d",
+      "bytes": 47232,
+      "durationMs": 2952
+    },
+    "shimmer-rush.mp3": {
+      "hash": "892b49d7614b4ba993953a32db69070f31fee85650aac08afb656a035c433bff",
+      "bytes": 44928,
+      "durationMs": 2808
+    },
+    "shimmer-skip.mp3": {
+      "hash": "6a37f235df79f57958b627c3dabdf8ddbdeacda0e6415935824efc22b365b700",
+      "bytes": 55296,
+      "durationMs": 3456
+    },
+    "shimmer-try.mp3": {
+      "hash": "4cd9a3698099e30f98308bba594d83574e23577cd9751ce4403b028afe53d006",
+      "bytes": 41856,
+      "durationMs": 2616
+    },
+    "shimmer-hint.mp3": {
+      "hash": "be241f761aa90ab87842b93ee7c8b0bedcb3b94214be6e786f4b47072a6aa717",
+      "bytes": 72192,
+      "durationMs": 4512
+    },
+    "shimmer-break.mp3": {
+      "hash": "53e4fa7735a07b6edf3ed571d147e27bd3ebb249ea1b3b29905b2d747b4925ca",
+      "bytes": 76032,
+      "durationMs": 4752
+    },
+    "shimmer-finish.mp3": {
+      "hash": "5ca2896bdc7e801f39dc60bff291246b47ef1ac50abef205f4aaef720a249116",
+      "bytes": 66432,
+      "durationMs": 4152
+    },
+    "shimmer-win.mp3": {
+      "hash": "39bf7f580ac843595945b4fe79c917e8317e778d96ac14d12aa20cc981b840a8",
+      "bytes": 63360,
+      "durationMs": 3960
+    },
+    "shimmer-stop.mp3": {
+      "hash": "a8f0df517ef103abfb4558cadd7b723a1ccea49266d759b00e2089d82824aca3",
+      "bytes": 72192,
+      "durationMs": 4512
+    },
+    "shimmer-recording.mp3": {
+      "hash": "aac9d6a9dc3fb25f21b44b2f49cfad2de74433b682210da844b0b294f7fd7ce8",
+      "bytes": 69888,
+      "durationMs": 4368
+    },
+    "shimmer-replay.mp3": {
+      "hash": "71cdcae3641f99dae3ec8c08ffd7dbbe3cbca623ca32823052c3c6a7e00f8c46",
+      "bytes": 43392,
+      "durationMs": 2712
+    },
+    "shimmer-home.mp3": {
+      "hash": "3e0d48691009f543e1603b137e1c558e0af942658828221d2465667c97eccbb5",
+      "bytes": 76800,
+      "durationMs": 4800
+    },
+    "shimmer-menu.mp3": {
+      "hash": "6d5173c4928ec090b9b0eccd2bf394a8dc313ed9dafb11b260d2b8c0b8c84853",
+      "bytes": 60288,
+      "durationMs": 3768
+    },
+    "shimmer-preview.mp3": {
+      "hash": "d264d24abd380efd91a23ff869d4373b57eb99e1584c19b788df2abb6520ccf1",
+      "bytes": 154368,
+      "durationMs": 9648
+    }
+  }
+}

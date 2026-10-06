@@ -16,9 +16,9 @@ Only grades, assistance flags and fixed strategy observation codes are long-term
 
 ## Australian voice
 
-`lib/browser-voice.ts` selects only `en-AU` voices, preferring downloaded voices. `/voice-check` lets the parent preview a voice and save its URI on that device. The actual first speech call runs directly from a tap; there is no silent audio primer or paid speech generation before it. Missing start/end events time out, cancel is bounded, and late callbacks cannot alter another question. Standard questions can be read without voice; spelling requires an available voice or can be skipped unassessed. Saved private reading clips use native audio controls after an authenticated download.
+The app uses OpenAI-generated Coral, Nova or Shimmer audio. `/voice-check` plays real MP3 previews and saves the chosen voice on this device. Instructions request a warm young adult woman speaking General Australian English; accent and voice preference need listening verification and are not guaranteed by a prompt. No Microsoft/device voice is selected as a fallback.
 
-On iPhone, add a voice through Settings → Accessibility → Read & Speak (or Spoken Content) → Voices → English → Australian. Available names depend on the OS. A voice choice is per device, not a profile trait. Automated native-engine tests and mocked Chromium do not prove Safari timing or accent; listening on the actual phone remains necessary.
+Generic introductions are static MP3s that start from a tap. Actual tutor replies come from owned, completed reply receipts, and question audio from the current owned assessment. A protected same-origin media endpoint streams MP3 audio without a fetch-to-Blob delay. A private process buffer permits replays for 90 seconds with a 16-entry, 2 MiB per-entry bound; authorisation is checked before every replay. Missing playback events time out and cancelled audio cannot change later questions. Standard questions can be read without voice; spelling can be skipped unassessed if audio fails. Existing reading recordings keep their authenticated native audio controls.
 
 ## Provider and spending
 
@@ -26,7 +26,7 @@ The server calls the documented Chat Completions endpoint with `gpt-4.1-mini`, s
 
 OpenAI’s API data is not used for training by default. `store:false` disables saved completion application state; it does not remove default abuse-monitoring logs, which may retain prompts and replies for up to 30 days. See https://developers.openai.com/api/docs/guides/your-data and https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create.
 
-Each AI turn reserves a conservative three US cents against the shared US$15 monthly app cap; transcription also reserves its estimated cost. Native device speech does not use this API budget. A reservation is not an invoice. Failed provider calls retain their reservation because they may have been billed. The app never substitutes invented tutoring or fabricated progress for an unavailable provider.
+Each AI turn reserves a conservative three US cents against the shared US$15 monthly app cap; transcription also reserves its estimated cost. Generated speech also reserves its estimated cost; public generic voice samples incur no per-play generation charge. A reservation is not an invoice. Failed provider calls retain their reservation because they may have been billed. The app never substitutes invented tutoring or fabricated progress for an unavailable provider.
 
 ## Verification
 

@@ -1,0 +1,10 @@
+{
+  "revision": "natural-v1",
+  "model": "gpt-4o-mini-tts-2025-12-15",
+  "voices": ["coral", "nova", "shimmer"],
+  "defaultVoice": "coral",
+  "speed": 1,
+  "format": "mp3",
+  "instructions": "You are a warm, personable young adult Australian woman tutoring a capable nine-year-old in Perth. Speak with a natural contemporary General Australian accent throughout, using Australian vowels and non-rhotic pronunciation. Sound interested in her ideas: conversational, gently playful, with a small smile in your voice and natural variation in emphasis. Keep a comfortable everyday pace and brief pauses. Avoid exaggerated sing-song delivery, a cartoon character, an announcer voice, or overexcited praise. Read exactly the supplied words; do not add or change them.",
+  "previewText": "Hi Summer. Let’s have a look at this maths problem together. Tell me how you got your answer. Take your time. I want to hear your thinking."
+}
