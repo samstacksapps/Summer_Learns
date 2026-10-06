@@ -149,7 +149,8 @@ test('new lessons use owned baseline results and selected topic; existing lesson
  const h=harness(db);const started=await h.post({action:'start',subject:'maths',topicId:'addition',requestId:randomUUID()});assert.equal(started.status,200);
  const shown=await started.json();assert.equal(shown.focus.topicId,'addition');assert.equal(shown.item.yearLevel,1);assert.equal(shown.item.skillId,'maths-y1-add-within-20');assert.equal(shown.item.acceptedAnswers,undefined);
  const plan=JSON.stringify(db.rows.learning_sessions[0].plan);
- const resumed=await h.post({action:'start',subject:'english',topicId:'story-clues',requestId:randomUUID()});assert.equal(resumed.status,200);assert.equal((await resumed.json()).focus.topicId,'addition');assert.equal(JSON.stringify(db.rows.learning_sessions[0].plan),plan);
+ const resumed=await h.post({action:'start',subject:'english',topicId:'story-clues',requestId:randomUUID()});assert.equal(resumed.status,409);assert.equal((await resumed.json()).code,'other_subject_in_progress');assert.equal(JSON.stringify(db.rows.learning_sessions[0].plan),plan);
+ const same=await h.post({action:'start',subject:'maths',topicId:'counting',requestId:randomUUID()});assert.equal(same.status,200);assert.equal((await same.json()).focus.topicId,'addition');
 });
 test('cleared baseline results cannot authorise a new personalised lesson',async()=>{
  const db=new MockDatabase();db.rows.assessments[0].is_archived=true;const h=harness(db);

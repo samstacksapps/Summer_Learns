@@ -224,7 +224,7 @@ export default function TutorLesson({ subject, topicId, onClose, onComplete, onA
       setError(timedOut ? 'The tutor took too long to reply. Try again to pick up the same turn.' : cancelled ? 'Paused while waiting. Try the same turn again to pick up any reply your tutor has already saved.' : failure instanceof Error ? failure.message : 'The tutor could not reply just yet. Try again.');
       const code = failure instanceof TutorRequestError ? failure.code || '' : '';
       setErrorCode(code);
-      if (code !== 'tutor_setup_required') {
+      if (!['tutor_setup_required','other_subject_in_progress','baseline_required'].includes(code)) {
         // Reuse the exact body and request ID: retrying must not save another answer.
         failed.current = { body, kind };
         setRetryable(true);

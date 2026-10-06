@@ -55,7 +55,9 @@ export async function POST(request:Request){
    if(prior.data)session=await ownedSession(db,user.id,prior.data.session_id);
    else{
     const active=await db.from('learning_sessions').select('id').eq('owner_id',user.id).eq('status','in_progress').limit(1).maybeSingle();if(active.error)dbFailure(active.error);
-    if(active.data)session=await ownedSession(db,user.id,active.data.id);
+    if(active.data){
+     session=await ownedSession(db,user.id,active.data.id);
+    }
     else{
      const subject=body.subject as TutorSubject;
      const version=await db.rpc('curated_learning_version');if(version.error)throw new Error('TUTOR_SETUP_REQUIRED');
@@ -70,6 +72,7 @@ export async function POST(request:Request){
     }
    }
   }else session=await ownedSession(db,user.id,body.sessionId as string);
+  if(action==='start'&&session.subject!==body.subject)return json({error:`You have an unfinished ${session.subject==='maths'?'Maths':'English'} lesson. Open that subject to continue, or use Stop for now there before starting ${body.subject==='maths'?'Maths':'English'}.`,code:'other_subject_in_progress'},409);
   recover={db,owner:user.id,sessionId:session.id};
   const expectedRevision=action==='start'?session.revision:Number(body.revision);
   const claim=await db.rpc('claim_tutor_turn',{p_session_id:session.id,p_request_id:requestId,p_expected_revision:expectedRevision,p_action:action,p_cost_cents:['start','respond','message'].includes(action)?3:0});
