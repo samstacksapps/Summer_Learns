@@ -8,11 +8,11 @@ import type { TutorPayload } from '@/lib/tutor-content';
 
 type Subject = 'maths' | 'english';
 type TurnKind = 'start' | 'respond' | 'message' | 'stop';
-type TurnBody = { action: TurnKind; requestId: string; subject?: Subject; sessionId?: string; revision?: number; itemId?: string; answer?: string; explanation?: string; responseMs?: number; message?: string; conversation?: ConversationTurn[] };
+type TurnBody = { action: TurnKind; requestId: string; subject?: Subject; topicId?:string; sessionId?: string; revision?: number; itemId?: string; answer?: string; explanation?: string; responseMs?: number; message?: string; conversation?: ConversationTurn[] };
 type ConversationTurn = { role: 'user' | 'assistant'; content: string };
 type Bubble = ConversationTurn & { id: string };
 type RequestFailure = { body: TurnBody; kind: TurnKind };
-type Props = { subject: Subject; onClose: () => void; onComplete: () => void | Promise<void>; onAuthRequired?: () => void };
+type Props = { subject: Subject; topicId?:string; onClose: () => void; onComplete: () => void | Promise<void>; onAuthRequired?: () => void };
 
 class TutorRequestError extends Error {
   constructor(message: string, readonly status: number, readonly code?: string, readonly current?: TutorPayload) { super(message); }
@@ -28,7 +28,7 @@ function boundedConversation(turns: ConversationTurn[]): ConversationTurn[] {
 }
 
 /** Normal learning is separate from the independent starting and four-week tests. */
-export default function TutorLesson({ subject, onClose, onComplete, onAuthRequired }: Props) {
+export default function TutorLesson({ subject, topicId, onClose, onComplete, onAuthRequired }: Props) {
   const [lesson, setLesson] = useState<TutorPayload | null>(null);
   const [nextLesson, setNextLesson] = useState<TutorPayload | null>(null);
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
@@ -244,7 +244,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
   function start() {
     if (busyRef.current || failed.current) return;
     if (voiceOnRef.current) speak(intro,{line:'start'});
-    void runTurn({ action: 'start', subject, requestId: makeId() }, 'start');
+    void runTurn({ action: 'start', subject, topicId, requestId: makeId() }, 'start');
   }
 
   function submitAnswer(event: FormEvent) {
@@ -434,7 +434,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
       <Illustration name={subject === 'maths' ? 'card-maths' : 'card-english'} className="scene-art" />
       <p className="eyebrow">Year 1–2 · {subjectTitle[subject]}</p>
       <PageTitle first="Let’s work" second="it out together" />
-      <p>Five questions, starting at Year 2. Tell your tutor what you think, ask a question, or try a hint.</p>
+      <p>Five questions chosen from your starting point and recent practice. Tell your tutor what you think, ask a question, or try a hint.</p>
       <p>This is practice. Your starting test stays separate.</p>
       {voiceButton}
       {voiceNote}
@@ -461,7 +461,7 @@ export default function TutorLesson({ subject, onClose, onComplete, onAuthRequir
 
   const item = lesson.item;
   return <section ref={lessonRoot} className="tutor-lesson" aria-label={`${subjectTitle[activeSubject]} tutoring`}>
-    <div className="lesson-bar"><div><strong>{subjectTitle[activeSubject]} with your tutor</strong><br /><span>Year 1–2 practice</span></div><button type="button" className="secondary" disabled={stopping} onClick={stop}>{stopping ? 'Stopping…' : 'Stop for now'}</button></div>
+    <div className="lesson-bar"><div><strong>{lesson.focus?.title || `${subjectTitle[activeSubject]} with your tutor`}</strong><br /><span>Year 1–2 practice</span></div><button type="button" className="secondary" disabled={stopping} onClick={stop}>{stopping ? 'Stopping…' : 'Stop for now'}</button></div>
     <div className="tutor-progress-copy"><span>Question {Math.min(5, (lesson.progress.answered || 0) + 1)} of {lesson.progress.total}</span><strong>{progress?.answered || 0}/{lesson.progress.total} done</strong></div>
     <ProgressTrack value={progress?.answered || 0} total={lesson.progress.total} label="Lesson progress" className="lesson-progress" />
     {errorPanel}

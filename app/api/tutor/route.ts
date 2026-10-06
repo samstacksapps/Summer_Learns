@@ -4,6 +4,7 @@ import {family} from '@/lib/db';
 import {failure,json,sameOrigin,uuid} from '@/lib/http';
 import {boundedConversation,tutorQuestion,tutorReply,validTutorPlan,validTutorState} from '@/lib/tutor';
 import {advanceTutorState,createTutorPlan,gradeTutorAnswer,initialTutorState,observationLabels,publicTutorItem,type ObservationCode,type TutorPayload,type TutorPlan,type TutorState,type TutorSubject} from '@/lib/tutor-content';
+import {curatedLearning} from '@/lib/curated-learning';
 export const maxDuration=45;
 type Session={id:string;subject:TutorSubject;status:'in_progress'|'completed'|'stopped';revision:number;plan:TutorPlan;tutor_state:TutorState};
 type DbError={code?:string;message?:string};
@@ -17,7 +18,7 @@ function dbFailure(error:DbError):never{
 async function ownedSession(db:SupabaseClient,owner:string,id:string){const {data,error}=await db.from('learning_sessions').select('*').eq('owner_id',owner).eq('id',id).maybeSingle();if(error)dbFailure(error);if(!data||data.is_archived)throw new Error('TUTOR_STALE');if(!validTutorPlan(data.plan)||!validTutorState(data.tutor_state))throw new Error('TUTOR_STATE_INVALID');return data as Session;}
 function payload(session:Session,state:TutorState,message:string,revision=session.revision):TutorPayload{
  const item=session.status==='stopped'?null:tutorQuestion(session.plan,state);
- return {sessionId:session.id,revision,subject:session.subject,item:item?publicTutorItem(item):null,message,progress:{answered:state.index,total:5,correct:state.correct},complete:state.index===5,...(session.status==='stopped'?{stopped:true as const}:{}),observations:state.observations.map(code=>observationLabels[code])};
+ return {sessionId:session.id,revision,subject:session.subject,focus:session.plan.focus,item:item?publicTutorItem(item):null,message,progress:{answered:state.index,total:5,correct:state.correct},complete:state.index===5,...(session.status==='stopped'?{stopped:true as const}:{}),observations:state.observations.map(code=>observationLabels[code])};
 }
 function tutorFailure(error:unknown){
  const reason=error instanceof Error?error.message:'';
@@ -57,7 +58,12 @@ export async function POST(request:Request){
     if(active.data)session=await ownedSession(db,user.id,active.data.id);
     else{
      const subject=body.subject as TutorSubject;
-     const inserted=await db.from('learning_sessions').insert({owner_id:user.id,subject,status:'in_progress',revision:0,plan:createTutorPlan(subject,randomUUID()),tutor_state:initialTutorState()}).select('id').single();
+     const version=await db.rpc('curated_learning_version');if(version.error)throw new Error('TUTOR_SETUP_REQUIRED');
+     const curated=await curatedLearning(db,user.id);
+     const choices=curated.recommendations.filter(r=>r.subject===subject);
+     const focus=body.topicId===undefined?choices[0]:choices.find(r=>r.topicId===body.topicId);
+     if(!focus)return json({error:'Choose an available lesson.'},400);
+     const inserted=await db.from('learning_sessions').insert({owner_id:user.id,subject,status:'in_progress',revision:0,plan:createTutorPlan(subject,randomUUID(),focus),tutor_state:initialTutorState()}).select('id').single();
      if(inserted.error?.code==='23505'){
       const retry=await db.from('learning_sessions').select('id').eq('owner_id',user.id).eq('status','in_progress').limit(1).single();if(retry.error)dbFailure(retry.error);session=await ownedSession(db,user.id,retry.data.id);
      }else{if(inserted.error)dbFailure(inserted.error);session=await ownedSession(db,user.id,inserted.data.id);}

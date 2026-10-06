@@ -12,9 +12,10 @@ type Row=Record<string,any>;
 const OWNER='aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 class MockDatabase{
  rows:Record<string,Row[]>={assessments:[{id:randomUUID(),owner_id:OWNER,kind:'baseline',status:'completed'}],learning_sessions:[],tutor_turns:[],learning_attempts:[]};
- calls={claims:0,commits:0,failures:0,reservations:0};missingMigration=false;
+ calls={claims:0,commits:0,failures:0,reservations:0};missingMigration=false;missingCuration=false;
  from(table:string){return new Query(this,table);}
- async rpc(name:string,args:Row):Promise<{data:any;error:Row|null}>{
+ async rpc(name:string,args:Row={}):Promise<{data:any;error:Row|null}>{
+  if(name==='curated_learning_version')return this.missingCuration?{data:null,error:{code:'PGRST202'}}:{data:1,error:null};
   const session=this.rows.learning_sessions.find(row=>row.id===args.p_session_id);const error=(message:string)=>({data:null,error:{code:'P0001',message}});
   if(!session)return error('TUTOR_STALE');
   if(name==='claim_tutor_turn'){
@@ -40,6 +41,7 @@ class MockDatabase{
 class Query{
  filters:[string,unknown][]=[];kind='select';value:Row={};max=Infinity;
  constructor(readonly db:MockDatabase,readonly table:string){}
+ not(_key:string,_operator:string,_value:unknown){return this;}
  select(_columns:string){return this;}eq(key:string,value:unknown){this.filters.push([key,value]);return this;}limit(count:number){this.max=count;return this;}order(_key:string,_options?:unknown){return this;}
  insert(value:Row){this.kind='insert';this.value=value;return this;}
  async maybeSingle(){const result=await this.execute();return {data:result.data[0]??null,error:result.error};}async single(){return this.maybeSingle();}
@@ -59,10 +61,11 @@ function harness(db:MockDatabase){
  let providerCalls=0,providerFails=false,signedIn=true,providerObservations:string[]|undefined;
  const stubs:Row={'server-only':{},'next/server':{NextResponse:{json:(data:unknown,options:ResponseInit)=>Response.json(data,options)}},'@/lib/db':{family:async()=>{if(!signedIn)throw new Error('SIGN_IN_REQUIRED');return {db,user:{id:OWNER}};}}};
  function load(file:string):Row{
+  if(file.endsWith('.json'))return {default:JSON.parse(readFileSync(file,'utf8'))};
   const absolute=path.resolve(root,file),hit=cache.get(absolute);if(hit)return hit.exports;
   const module={exports:{}};cache.set(absolute,module);
   const source=ts.transpileModule(readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  const require=(name:string)=>{if(Object.hasOwn(stubs,name))return stubs[name];if(name.startsWith('node:'))return nativeRequire(name);const target=name.startsWith('@/')?path.join(root,name.slice(2)):path.resolve(path.dirname(absolute),name);return load(target.endsWith('.ts')?target:target+'.ts');};
+  const require=(name:string)=>{if(Object.hasOwn(stubs,name))return stubs[name];if(name.startsWith('node:'))return nativeRequire(name);const target=name.startsWith('@/')?path.join(root,name.slice(2)):path.resolve(path.dirname(absolute),name);return load(target.endsWith('.ts')||target.endsWith('.json')?target:target+'.ts');};
   vm.runInNewContext(source,{module,exports:module.exports,require,Buffer,Request,Response,URL,Error,DOMException,AbortSignal,Set,JSON,Date,Number,process:{env:{SUMMER_OPENAI_KEY:'fictional-fixture-key'}},fetch:async(url:string,options:RequestInit)=>{
    providerCalls++;assert.equal(url,'https://api.openai.com/v1/chat/completions');const request=JSON.parse(options.body as string);assert.equal(request.store,false);assert.equal(request.model,'gpt-4.1-mini');assert.equal(request.response_format.type,'json_schema');assert.equal(request.messages[0].role,'system');
    const context=JSON.parse(request.messages[1].content);contexts.push(context);
@@ -140,4 +143,31 @@ test('asking about a possible method does not create memory, but describing an o
  const db=new MockDatabase(),session=db.seed(),h=harness(db);h.providerObservations=['drawing-a-model','equal-groups','tens-and-ones'];
  const asked=await h.post({action:'message',sessionId:session.id,revision:0,requestId:randomUUID(),message:'Could I draw equal groups to work this out?'});assert.equal(asked.status,200);assert.deepEqual(session.tutor_state.observations,[]);
  const explained=await h.post({action:'message',sessionId:session.id,revision:1,requestId:randomUUID(),message:'I drew equal groups, with four dots in each group.'});assert.equal(explained.status,200);assert.deepEqual(session.tutor_state.observations,['drawing-a-model','equal-groups']);
+});
+test('new lessons use owned baseline results and selected topic; existing lessons retain their plan',async()=>{
+ const db=new MockDatabase();db.rows.attempts=[{assessment_id:db.rows.assessments[0].id,owner_id:OWNER,item_id:'baseline-addition',skill_id:'maths-y1-add-within-20',session_id:randomUUID(),correct:false,assisted:false,likely_guess:false,response_ms:5000,year_level:1,created_at:'2026-10-01',reading_estimate:null}];
+ const h=harness(db);const started=await h.post({action:'start',subject:'maths',topicId:'addition',requestId:randomUUID()});assert.equal(started.status,200);
+ const shown=await started.json();assert.equal(shown.focus.topicId,'addition');assert.equal(shown.item.yearLevel,1);assert.equal(shown.item.skillId,'maths-y1-add-within-20');assert.equal(shown.item.acceptedAnswers,undefined);
+ const plan=JSON.stringify(db.rows.learning_sessions[0].plan);
+ const resumed=await h.post({action:'start',subject:'english',topicId:'story-clues',requestId:randomUUID()});assert.equal(resumed.status,200);assert.equal((await resumed.json()).focus.topicId,'addition');assert.equal(JSON.stringify(db.rows.learning_sessions[0].plan),plan);
+});
+test('cleared baseline results cannot authorise a new personalised lesson',async()=>{
+ const db=new MockDatabase();db.rows.assessments[0].is_archived=true;const h=harness(db);
+ assert.equal((await h.post({action:'start',subject:'maths',requestId:randomUUID()})).status,409);assert.equal(h.providerCalls,0);
+});
+test('lesson planning setup and unknown-topic gates prevent AI charges',async()=>{
+ for(const missing of [false,true]){
+  const db=new MockDatabase();db.missingCuration=missing;const h=harness(db);
+  const response=await h.post({action:'start',subject:'maths',topicId:'unavailable-topic',requestId:randomUUID()});assert.equal(response.status,missing?503:400);assert.equal(h.providerCalls,0);assert.equal(db.rows.learning_sessions.length,0);
+ }
+});
+test('archived and stopped daily evidence never changes recommendations',async()=>{
+ const db=new MockDatabase();const aid=db.rows.assessments[0].id;
+ db.rows.attempts=[{assessment_id:aid,owner_id:OWNER,item_id:'baseline-addition',skill_id:'maths-y2-add-two-digits',session_id:randomUUID(),correct:true,assisted:false,likely_guess:false,response_ms:5000,year_level:2,created_at:'2026-10-01',reading_estimate:null}];
+ for(const status of ['archived','stopped']){
+  const sid=randomUUID();db.rows.learning_sessions.push({id:sid,owner_id:OWNER,subject:'maths',status:status==='archived'?'completed':'stopped',is_archived:status==='archived',started_at:'2026-10-02',completed_at:null});
+  db.rows.learning_attempts.push({session_id:sid,owner_id:OWNER,item_id:'daily-old',skill_id:'maths-y1-add-within-20',correct:false,assisted:false,response_ms:5000,year_level:1,created_at:'2026-10-03'});
+ }
+ const h=harness(db);const result=await h.post({action:'start',subject:'maths',topicId:'addition',requestId:randomUUID()});assert.equal(result.status,200);
+ const shown=await result.json();assert.equal(shown.focus.independentAnswers,1);assert.equal(shown.focus.correct,1);assert.equal(shown.item.yearLevel,2);
 });

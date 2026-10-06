@@ -8,7 +8,7 @@ export function validTutorState(value:unknown):value is TutorState{
 }
 export function validTutorPlan(value:unknown):value is TutorPlan{
  if(!value||typeof value!=='object')return false;const v=value as TutorPlan;
- return v.version===1&&['maths','english'].includes(v.subject)&&Array.isArray(v.items)&&v.items.length===5&&v.items.every(slot=>[slot?.year1,slot?.year2].every((item,i)=>item&&item.subject===v.subject&&item.yearLevel===i+1&&typeof item.id==='string'&&item.id.startsWith('daily-')&&typeof item.skillId==='string'&&['number','choice'].includes(item.kind)&&typeof item.prompt==='string'&&typeof item.teachingNote==='string'&&Array.isArray(item.acceptedAnswers)&&item.acceptedAnswers.length>0&&item.acceptedAnswers.every((a:unknown)=>typeof a==='string')));
+ return v.version===1&&['maths','english'].includes(v.subject)&&Array.isArray(v.items)&&v.items.length===5&&v.items.every(slot=>(slot.entryYear===undefined||slot.entryYear===1||slot.entryYear===2)&&[slot?.year1,slot?.year2].every((item,i)=>item&&item.subject===v.subject&&item.yearLevel===i+1&&typeof item.id==='string'&&item.id.startsWith('daily-')&&typeof item.skillId==='string'&&['number','choice'].includes(item.kind)&&typeof item.prompt==='string'&&typeof item.teachingNote==='string'&&Array.isArray(item.acceptedAnswers)&&item.acceptedAnswers.length>0&&item.acceptedAnswers.every((a:unknown)=>typeof a==='string')));
 }
 export function boundedConversation(value:unknown):ConversationMessage[]|null{
  if(value===undefined)return [];if(!Array.isArray(value)||value.length>8)return null;

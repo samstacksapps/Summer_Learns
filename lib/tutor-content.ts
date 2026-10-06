@@ -1,3 +1,4 @@
+import {lessonTopics,type Recommendation} from './lesson-recommendations';
 import {shuffledChoices} from './choice-order';
 /** Daily practice is deliberately separate from the baseline and follow-up item bank. */
 export type TutorSubject='maths'|'english';
@@ -9,9 +10,9 @@ export const observationLabels:Record<ObservationCode,string>={
 };
 export type TutorItem={id:string;skillId:string;subject:TutorSubject;yearLevel:1|2;kind:'number'|'choice';prompt:string;acceptedAnswers:string[];teachingNote:string;choices?:string[];passage?:string};
 export type PublicTutorItem=Omit<TutorItem,'acceptedAnswers'|'teachingNote'|'subject'>;
-export type TutorPlan={version:1;subject:TutorSubject;items:{year1:TutorItem;year2:TutorItem}[]};
+export type TutorPlan={version:1;subject:TutorSubject;focus?:Recommendation;items:{year1:TutorItem;year2:TutorItem;entryYear?:1|2}[]};
 export type TutorState={index:number;correct:number;incorrectStreak:number;helped:boolean;observations:ObservationCode[]};
-export type TutorPayload={sessionId:string;revision:number;subject:TutorSubject;item:PublicTutorItem|null;message:string;progress:{answered:number;total:5;correct:number};complete:boolean;stopped?:true;observations?:string[];result?:{correct:boolean;assisted:boolean;yearLevel:1|2}};
+export type TutorPayload={sessionId:string;revision:number;subject:TutorSubject;focus?:Recommendation;item:PublicTutorItem|null;message:string;progress:{answered:number;total:5;correct:number};complete:boolean;stopped?:true;observations?:string[];result?:{correct:boolean;assisted:boolean;yearLevel:1|2}};
 export function initialTutorState():TutorState{return {index:0,correct:0,incorrectStreak:0,helped:false,observations:[]};}
 export function publicTutorItem(item:TutorItem):PublicTutorItem{const {acceptedAnswers:_answers,teachingNote:_note,subject:_subject,...shown}=item;return {...shown,choices:shuffledChoices(item.choices,item.id)};}
 function normalise(value:string){const normalised=value.normalize('NFKC').trim().toLocaleLowerCase('en-AU').replace(/[‘’]/g,"'").replace(/\s+/g,' ');return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalised)?String(Number(normalised)):normalised;}
@@ -21,7 +22,7 @@ export function gradeTutorAnswer(item:TutorItem,answer:string){
  return item.kind==='choice'?item.acceptedAnswers.some(a=>choiceValue(a)===choiceValue(answer)):item.acceptedAnswers.some(a=>normalise(a)===normalise(answer));
 }
 /** Year 2 is the entry point. Two consecutive misses offer Year 1 support. */
-export function currentTutorItem(plan:TutorPlan,state:TutorState){const slot=plan.items[state.index];return slot?(state.incorrectStreak>=2?slot.year1:slot.year2):null;}
+export function currentTutorItem(plan:TutorPlan,state:TutorState){const slot=plan.items[state.index];return slot?(state.incorrectStreak>=2||slot.entryYear===1?slot.year1:slot.year2):null;}
 export function advanceTutorState(state:TutorState,correct:boolean):TutorState{return {...state,index:state.index+1,correct:state.correct+(correct?1:0),incorrectStreak:correct?0:state.incorrectStreak+1,helped:false};}
 function numberItem(id:string,yearLevel:1|2,skill:string,prompt:string,answer:number,note:string):TutorItem{return {id,subject:'maths',yearLevel,skillId:`maths-y${yearLevel}-${skill}`,kind:'number',prompt,acceptedAnswers:[String(answer)],teachingNote:note};}
 type EnglishTemplate={skill:string;prompt:string;choices:string[];answer:string;note:string;passage?:string};
@@ -104,9 +105,32 @@ englishYear2.push(
 function englishItem(id:string,yearLevel:1|2,template:EnglishTemplate):TutorItem{return {id,subject:'english',yearLevel,skillId:`english-y${yearLevel}-${template.skill}`,kind:'choice',prompt:template.prompt,choices:template.choices,acceptedAnswers:[template.answer],teachingNote:template.note,...(template.passage?{passage:template.passage}:{})};}
 function seedValue(seed:string){let value=2166136261;for(const c of seed)value=Math.imul(value^c.charCodeAt(0),16777619);return value>>>0;}
 /** Authored templates and bounded numeric variants; the model cannot alter answer keys. */
-export function createTutorPlan(subject:TutorSubject,seed:string):TutorPlan{
+export function createTutorPlan(subject:TutorSubject,seed:string,focus?:Recommendation):TutorPlan{
+ if(focus){
+  const topic=lessonTopics.find(t=>t[0]===subject&&t[1]===focus.topicId);
+  if(!topic)throw new Error("INVALID_LESSON_TOPIC");
+  // Focus questions use distinct authored English variants; maths uses fresh numeric variants with a short mixed review.
+  const items=Array.from({length:5},(_,i)=>{
+   const raw=createTutorPlan(subject,`${seed}-${i}-bank`);
+   return raw.items[i];
+  });
+  // The internal bank mode selects all topics without publishing any answer keys.
+  const seen=new Set<string>();
+  for(let i=0;i<(subject==='english'||[0,1,2,3,4].includes(topic[3])?3:1);i++){
+   const available=tutorBank(subject,`${seed}-${i}`);
+   let selected=available[topic[3]];
+   for(let retry=0;seen.has(selected.year1.prompt+'|'+selected.year2.prompt)&&retry<100;retry++)selected=tutorBank(subject,`${seed}-${i}-${retry}`)[topic[3]];
+   seen.add(selected.year1.prompt+'|'+selected.year2.prompt);
+   items[i]=selected;
+  }
+  return {version:1,subject,focus,items:items.map(slot=>({...slot,entryYear:focus.yearLevel}))};
+ }
+ const value=seedValue(seed),bank=tutorBank(subject,seed);
+ return {version:1,subject,items:Array.from({length:5},(_,i)=>bank[(value+i*(subject==='english'?3:5))%bank.length])};
+}
+function tutorBank(subject:TutorSubject,seed:string):TutorPlan['items']{
  const value=seedValue(seed),n=value%6,t=(value>>>4)%6,prefix=`daily-${subject}-${seed}`;
- if(subject==='english')return {version:1,subject,items:Array.from({length:5},(_,i)=>{const topic=(value+i*3)%englishYear2.length,variant=(value>>>i)%3;return {year1:englishItem(`${prefix}-${i}-y1`,1,englishYear1[topic][variant]),year2:englishItem(`${prefix}-${i}-y2`,2,englishYear2[topic][variant])};})};
+ if(subject==='english')return Array.from({length:englishYear2.length},(_,i)=>{const topic=i,variant=(value>>>i)%3;return {year1:englishItem(`${prefix}-${i}-y1`,1,englishYear1[topic][variant]),year2:englishItem(`${prefix}-${i}-y2`,2,englishYear2[topic][variant])};});
  const hundreds=3+n,tens=2+t,ones=4+n,groups=3+n%3,perGroup=4+t%3,a=31+n%3,b=22+t%3,whole=75+n%3,removed=21+t%3,units=6+n;
  const bank=[
   {year2:numberItem(`${prefix}-0-y2`,2,'hundreds-tens-ones',`A display has ${hundreds} hundreds, ${tens} tens and ${ones} ones. What number is on the display?`,hundreds*100+tens*10+ones,'Combine the hundreds, tens and ones; each column has a different value.'),year1:numberItem(`${prefix}-0-y1`,1,'tens-and-ones',`A jar label shows ${tens} tens and ${ones} ones. What number is on the label?`,tens*10+ones,'Each ten is ten, so add the tens value and the ones.')},
@@ -122,5 +146,5 @@ export function createTutorPlan(subject:TutorSubject,seed:string):TutorPlan{
   {year2:numberItem(`${prefix}-10-y2`,2,'number-patterns',`A scoreboard follows this rule: add ${3+n%3} each time. The scores are ${12+t}, ${15+t+n%3}, ${18+t+2*(n%3)}. What score comes next?`,21+t+3*(n%3),'Check the same difference between each adjacent pair, then add it once more.'),year1:numberItem(`${prefix}-10-y1`,1,'skip-count-2-5-10',`A scoreboard counts in fives: 15, 20, 25. What score comes next?`,30,'Keep adding five each time.')},
   {year2:numberItem(`${prefix}-11-y2`,2,'solid-shapes',`A cube has six square faces. How many edges does a cube have?`,12,'Count the four edges on top, four on the bottom and four joining them; faces and edges are different.'),year1:numberItem(`${prefix}-11-y1`,1,'shape-features',`A square has four sides. How many corners does it have?`,4,'Each place where two sides meet is a corner; a square has four.')},
  ];
- return {version:1,subject,items:Array.from({length:5},(_,i)=>bank[(value+i*5)%bank.length])};
+ return bank;
 }
